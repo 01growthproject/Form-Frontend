@@ -1,0 +1,166 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Container */
+.simple-landing {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.simple-container {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+/* Header */
+.simple-header {
+  background: #4a6fa5;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.simple-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.logo-icon {
+  font-size: 24px;
+}
+
+.logo-text {
+  color: white;
+}
+
+/* Main Content */
+.simple-main {
+  padding: 30px;
+}
+
+.simple-content {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  text-align: center;
+}
+
+.simple-title {
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
+}
+
+.simple-subtitle {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Buttons */
+.simple-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.simple-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.simple-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.signup-btn {
+  background: #4a6fa5;
+  color: white;
+}
+
+.signup-btn:hover {
+  background: #3a5a85;
+}
+
+.login-btn {
+  background: white;
+  color: #4a6fa5;
+  border: 2px solid #4a6fa5;
+}
+
+.login-btn:hover {
+  background: #3a5a85;
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+.btn-text {
+  flex: 1;
+  text-align: center;
+}
+
+/* Footer */
+.simple-footer {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.simple-footer p {
+  color: #888;
+  font-size: 13px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .simple-container {
+    max-width: 100%;
+  }
+  
+  .simple-main {
+    padding: 20px;
+  }
+  
+  .simple-title {
+    font-size: 20px;
+  }
+  
+  .simple-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
