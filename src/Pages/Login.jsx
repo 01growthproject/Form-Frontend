@@ -46,15 +46,31 @@ const Login = () => {
       return;
     }
 
-    setLoading(true);
 
     try {
-      const res = await Api.post("/login", data);
+      setLoading(true);
+      console.log("login attempt", data.email);
+
+
+
+      const res = await Api.post("/login", data, {
+        timeout: 30000
+      });
+
+      console.log("login response", res.data);
+
 
       localStorage.setItem("token", res.data.token);
 
+
       toast.success("Login successful ✅");
-      navigate("/home");
+
+      setTimeout(() => {
+        setLoading(false)
+
+        navigate("/home", { replace: true });
+      }, 800)
+      
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Invalid email or password ❌");
