@@ -5,120 +5,128 @@ import "../Pages/Styles/Landing.css";
 const Landing = () => {
   return (
     <div className="landing-wrapper">
-      {/* Animated Background */}
       <div className="background-animation">
         <div className="shape shape-1"></div>
         <div className="shape shape-2"></div>
         <div className="shape shape-3"></div>
+        <div className="shape shape-4"></div>
+        <div className="shape shape-5"></div>
       </div>
 
-      <div className="landing-container">
-        {/* Header with Logo */}
-        <header className="landing-header">
-          <div className="logo-section">
-            <div className="logo-icon">
-              <span className="globe">🌍</span>
-              <span className="book">📚</span>
-            </div>
-            <div className="logo-text">
-              <h1 className="company-name">Growth Overseas</h1>
-              <p className="company-tagline">International Edutech</p>
+      <nav className="landing-nav">
+        <div className="nav-container">
+          <div className="nav-logo">
+            <img src="/logo.jpg" alt="Logo" className="nav-logo-img" />
+            <div className="nav-logo-text">
+              <h2>Growth Overseas</h2>
+              <span>International Edutech</span>
             </div>
           </div>
-        </header>
+          <Link to="/login" className="nav-login-btn">
+            Login
+          </Link>
+        </div>
+      </nav>
 
-        {/* Main Content Card */}
-        <main className="landing-main">
-          <div className="content-card">
-            {/* Left Section */}
-            <div className="left-section">
-              {/* Icon Banner */}
-              <div className="icon-banner">
-                <span className="banner-icon">🎓</span>
-              </div>
+      <section className="hero-section">
+        <div className="hero-container">
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Transform Your International
+              <span className="hero-title-gradient">Education Journey </span>
+              
+            </h1>
 
-              {/* Title Section */}
-              <div className="title-section">
-                <h2 className="main-title">Client Registration Portal</h2>
-                <p className="main-subtitle">
-                  Streamline your international education journey with our
-                  advanced client management system
-                </p>
-              </div>
-
-              {/* Features Grid */}
-              <div className="features-grid">
-                <div className="feature-item">
-                  <span className="feature-icon">⚡</span>
-                  <span className="feature-text">Quick Setup</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">🔒</span>
-                  <span className="feature-text">Secure Data</span>
-                </div>
-                <div className="feature-item">
-                  <span className="feature-icon">🌐</span>
-                  <span className="feature-text">Global Access</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Section */}
-            <div className="right-section">
-              {/* Action Buttons */}
-              <div className="action-buttons">
-                <Link to="/signup" className="action-btn primary-btn">
-                  <div className="btn-content">
-                    <span className="btn-icon">🚀</span>
-                    <div className="btn-text-group">
-                      <span className="btn-title">Create Account</span>
-                      <span className="btn-subtitle">
-                        Register as New Admin
-                      </span>
-                    </div>
-                  </div>
-                  <span className="btn-arrow">→</span>
-                </Link>
-
-                <Link to="/login" className="action-btn secondary-btn">
-                  <div className="btn-content">
-                    <span className="btn-icon">🔐</span>
-                    <div className="btn-text-group">
-                      <span className="btn-title">Admin Login</span>
-                      <span className="btn-subtitle">
-                        Access Your Dashboard
-                      </span>
-                    </div>
-                  </div>
-                  <span className="btn-arrow">→</span>
-                </Link>
-              </div>
-
-              {/* Trust Badge */}
-              <div className="trust-section">
-                <div className="trust-badge">
-                  <span className="badge-icon">✓</span>
-                  <span className="badge-text">
-                    Trusted by 500+ Education Consultants
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="landing-footer">
-          <div className="footer-content">
-            <p className="footer-text">
-              Empowering dreams • Connecting futures • Building success
+            <p className="hero-subtitle">
+            
+              Secure, fast, and designed for global education consultants.
             </p>
-            <p className="footer-copyright">
-              © 2025 Growth Overseas International Edutech
-            </p>
+
+            <div className="hero-cta">
+              <Link to="/login" className="cta-primary">
+                <span className="cta-icon">🚀</span>
+                <span className="cta-text">
+                  <span className="cta-title">Get Started</span>
+                  <span className="cta-subtitle">Access Dashboard</span>
+                </span>
+                <span className="cta-arrow">→</span>
+              </Link>
+
+              <div className="hero-stats">
+                <div className="stat-item">
+                  <span className="stat-icon">⚡</span>
+                  <div className="stat-content">
+                    <span className="stat-number">Fast</span>
+                    <span className="stat-label">Setup</span>
+                  </div>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                  <span className="stat-icon">🔒</span>
+                  <div className="stat-content">
+                    <span className="stat-number">Secure</span>
+                    <span className="stat-label">Data</span>
+                  </div>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
+                  <span className="stat-icon">🌐</span>
+                  <div className="stat-content">
+                    <span className="stat-number">Global</span>
+                    <span className="stat-label">Access</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </footer>
-      </div>
+
+          <div className="hero-visual">
+            <div className="visual-card">
+              <div className="visual-icon">🎓</div>
+              <div className="visual-content">
+                <h3>Client Portal</h3>
+                <p>Manage registrations efficiently</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="landing-footer">
+        <div className="footer-container">
+          <div className="footer-top">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <span className="footer-logo-icon">🌍</span>
+                <div className="footer-logo-text">
+                  <h3>Growth Overseas</h3>
+                  <span>International Edutech</span>
+                </div>
+              </div>
+              <p className="footer-tagline">
+                Empowering dreams • Connecting futures • Building success
+              </p>
+              <p className="footer-copyright">
+                © 2025 Growth Overseas International Edutech. All rights reserved.
+              </p>
+            </div>
+
+            <div className="footer-links">
+              <div className="footer-column">
+                <h4>Quick Links</h4>
+                <Link to="/login">Admin Login</Link>
+              </div>
+
+              <div className="footer-column">
+                <h4>Contact</h4>
+                <p>📞 +91 98545 90005</p>
+                <p>📍 Zirakpur, Punjab</p>
+                <p>🌐 Ambala-Chandigarh Expy</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

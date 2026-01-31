@@ -4,11 +4,12 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../Navbar/Navbar.jsx";
 import ClientFilter from "./ClientFilter.jsx";
 import ClientTable from "./ClientTable.jsx";
+import ProtectedRoute from "/src/Pages/ProtectedRoute.jsx"
 import "./Admin.css";
 
 const VITE_API_URL_FORM = import.meta.env.VITE_API_URL_FORM;
 
-const Admin = () => {
+const AdminContent = () => {
   const [clients, setClients] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -128,5 +129,11 @@ const Admin = () => {
     </>
   );
 };
+
+
+const Admin = () => {
+
+  return <ProtectedRoute>{<AdminContent />}</ProtectedRoute>;
+}
 
 export default Admin;

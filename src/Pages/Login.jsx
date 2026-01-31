@@ -1,170 +1,253 @@
-import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Api from "../api/axios.jsx";
 import "./Styles/Login.css";
 
-
 const Login = () => {
   const navigate = useNavigate();
-
-  const [data, setData] = useState({ email: "", password: "" });
+  const [step, setStep] = useState(1); // 1 = Enter Email, 2 = Enter OTP
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
 
+  const SESSION_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
+  const STATIC_EMAIL = "01growth.project@gmail.com";
+
+  // Check existing session
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/home");
+    const loginTime = localStorage.getItem("loginTime");
+
+    if (token && loginTime) {
+      const timeElapsed = Date.now() - parseInt(loginTime);
+      if (timeElapsed < SESSION_TIMEOUT) {
+        navigate("/home");
+      } else {
+        localStorage.clear();
+        toast.warning("Session expired. Please login again.");
+      }
     }
   }, [navigate]);
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!data.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      newErrors.email = "Please enter a valid email";
+  // Resend timer countdown
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(timer);
     }
+  }, [resendTimer]);
 
-    if (!data.password.trim()) {
-      newErrors.password = "Password is required";
-    }
-
-    return newErrors;
-  };
-
-  const handleLogin = async (e) => {
+  // Step 1: Request OTP
+  const handleRequestOTP = async (e) => {
     e.preventDefault();
 
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+    if (!email.trim()) {
+      toast.error("Please enter email");
       return;
     }
 
+    if (email !== STATIC_EMAIL) {
+      toast.error("Only admin email is allowed to login");
+      return;
+    }
 
     try {
       setLoading(true);
-      console.log("login attempt", data.email);
+      const res = await Api.post("/request-otp", { email });
 
-
-
-      const res = await Api.post("/login", data, {
-        timeout: 30000
-      });
-
-      console.log("login response", res.data);
-
-
-      localStorage.setItem("token", res.data.token);
-
-
-      toast.success("Login successful ✅");
-
-      setTimeout(() => {
-        setLoading(false)
-
-        navigate("/home", { replace: true });
-      }, 800)
-      
+      toast.success("OTP sent to your email! Check inbox.");
+      setStep(2);
+      setResendTimer(60); // 60 seconds cooldown
     } catch (error) {
-      console.error(error);
-      toast.error(error.response?.data?.message || "Invalid email or password ❌");
+      toast.error(error.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
   };
+
+  // Step 2: Verify OTP
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+
+    if (!otp.trim() || otp.length !== 6) {
+      toast.error("Please enter 6-digit OTP");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await Api.post("/verify-otp", { email, otp });
+
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("loginTime", Date.now().toString());
+
+      toast.success("Login successful! ✅");
+
+      setTimeout(() => {
+        navigate("/home", { replace: true });
+      }, 500);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Invalid OTP");
+      setOtp("");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend OTP
+  const handleResendOTP = async () => {
+    if (resendTimer > 0) return;
+
+    try {
+      setLoading(true);
+      await Api.post("/request-otp", { email });
+      toast.success("New OTP sent!");
+      setResendTimer(60);
+      setOtp("");
+    } catch (error) {
+      toast.error("Failed to resend OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Back to email step
+  // const handleBack = () => {
+  //   setStep(1);
+  //   setOtp("");
+  //   setResendTimer(0);
+  // };
 
   return (
     <div className="login-container">
       <div className="login-wrapper">
         <div className="login-card">
           <div className="login-header">
-            <h2>Welcome Back</h2>
-            <p>Login to your account</p>
+            <h2>🔐 Admin Login</h2>
+            <p>
+              {step === 1
+                ? "Enter your admin email to receive OTP"
+                : "Enter the OTP sent to your email"}
+            </p>
           </div>
 
-          <form onSubmit={handleLogin} className="login-form">
-            <div className="form-group">
-              <label>Email Address</label>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={data.email}
-                onChange={(e) => {
-                  setData({ ...data, email: e.target.value });
-                  setErrors({ ...errors, email: "" });
-                }}
-                className={errors.email ? "input-error" : ""}
-                disabled={loading}
-              />
-              {errors.email && <p className="error-text">{errors.email}</p>}
-            </div>
-
-            <div className="form-group">
-              <label>Password</label>
-              <div className="password-input-wrapper">
+          {step === 1 ? (
+            // Step 1: Email Input
+            <form onSubmit={handleRequestOTP} className="login-form">
+              <div className="form-group">
+                <label>Admin Email</label>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={data.password}
-                  onChange={(e) => {
-                    setData({ ...data, password: e.target.value });
-                    setErrors({ ...errors, password: "" });
-                  }}
-                  className={errors.password ? "input-error" : ""}
+                  type="email"
+                  placeholder="Enter-email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
+                  autoFocus
                 />
-                <button
-                  type="button"
-                  className="toggle-password"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? "👁️" : "👁️‍🗨️"}
-                </button>
+                <small style={{ color: '#666', fontSize: '12px' }}>
+                  Only authorized admin email can login
+                </small>
               </div>
-              {errors.password && <p className="error-text">{errors.password}</p>}
-            </div>
 
-            <div className="remember-forgot">
-              <label>
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
-              <a href="#forgot">Forgot password?</a>
-            </div>
+              <button type="submit" className="login-btn" disabled={loading}>
+                {loading ? "Sending OTP..." : "Send OTP 📧"}
+              </button>
+            </form>
+          ) : (
+            // Step 2: OTP Input
+            <form onSubmit={handleVerifyOTP} className="login-form">
+              <div className="form-group">
+                <label>Enter 6-Digit OTP</label>
+                <input
+                  type="text"
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    if (value.length <= 6) setOtp(value);
+                  }}
+                  maxLength={6}
+                  disabled={loading}
+                  autoFocus
+                  style={{
+                    fontSize: '24px',
+                    letterSpacing: '8px',
+                    textAlign: 'center',
+                    fontWeight: 'bold'
+                  }}
+                />
+                <small style={{ color: '#666', fontSize: '12px' }}>
+                  Sent to: {email}
+                </small>
+              </div>
 
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
-            </button>
-          </form>
+              <button type="submit" className="login-btn" disabled={loading}>
+                {loading ? "Verifying..." : "Verify & Login ✅"}
+              </button>
 
-          <div className="login-footer">
-            Don't have an account? <Link to="/signup">Create one</Link>
-          </div>
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                {resendTimer > 0 ? (
+                  <p style={{ color: '#666', fontSize: '14px' }}>
+                    Resend OTP in {resendTimer}s
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOTP}
+                    disabled={loading}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#2563eb',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      textDecoration: 'underline'
+                    }}
+                  >
+                    Resend OTP
+                  </button>
+                )}
+              </div>
+              {/* 
+              <button
+                type="button"
+                onClick={handleBack}
+                style={{
+                  marginTop: '10px',
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  width: '100%'
+                }}
+              >
+                ← Change Email
+              </button> */}
+            </form>
+          )}
         </div>
 
         <div className="login-info">
           <div className="info-content">
-            <h3>🏢 Growth Client</h3>
-            <p>Manage your forms and clients efficiently</p>
+            <h3>🏢 Growth Overseas</h3>
+            <p>Secure OTP-based authentication</p>
 
             <div className="benefits">
               <div className="benefit">
-                <span className="benefit-icon">✨</span>
-                <p>Fast & Secure</p>
+                <span className="benefit-icon">🔒</span>
+                <p>OTP Security</p>
               </div>
               <div className="benefit">
-                <span className="benefit-icon">📊</span>
-                <p>Real Analytics</p>
+                <span className="benefit-icon">📧</span>
+                <p>Email Verification</p>
               </div>
               <div className="benefit">
-                <span className="benefit-icon">🛡️</span>
-                <p>Data Protection</p>
+                <span className="benefit-icon">⚡</span>
+                <p>Quick Access</p>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./Pages/Landing.jsx";
 import Login from "./Pages/Login.jsx";
-import Signup from "./Pages/Signup.jsx";
+// import Signup from "./Pages/Signup.jsx";
 import Home from "./Pages/Home.jsx";
 import Form from "./Pages/Form.jsx";
 import Admin from "./Components/Admin/Admin.jsx";
@@ -22,7 +22,7 @@ const App = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* <Route path="/signup" element={<Signup />} /> */}
         <Route path="/login" element={<Login />} />
 
         {/* Protected Routes */}

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar.jsx";
-import "./Styles/home.css";
+import ProtectedRoute from "./ProtectedRoute.jsx"; // 👈 Import this
+import "./Styles/Home.css";
 
-const Home = () => {
+const HomeContent = () => {
   return (
     <>
       <Navbar />
@@ -49,10 +50,14 @@ const Home = () => {
             </div>
           </div>
         </div>
-
       </div>
     </>
   );
+};
+
+// Wrap with ProtectedRoute
+const Home = () => {
+  return <ProtectedRoute>{<HomeContent />}</ProtectedRoute>;
 };
 
 export default Home;
