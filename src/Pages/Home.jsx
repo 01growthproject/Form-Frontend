@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "../Components/Navbar/Navbar.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx"; // 👈 Import this
-import "./Styles/Home.css";
+import "./Styles/home.css";
 
 const HomeContent = () => {
   return (
