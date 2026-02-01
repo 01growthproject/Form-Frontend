@@ -21,6 +21,7 @@ const FormContent = () => {
     address: "",
     Nationality: "",
     familyMembers: "",
+    occupation: "",
     photo: null,
   });
 
@@ -90,6 +91,13 @@ const FormContent = () => {
       }
     }
 
+    if (name === 'fatherPhone' && updatedValue) {
+      const digitsOnly = updatedValue.replace(/\D/g, '');
+      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
+        setErrors(prev => ({ ...prev, fatherPhone: "Must be 10 digits" }));
+      }
+    }
+
     if (name === 'age' && updatedValue) {
       const ageNum = parseInt(updatedValue);
       if (ageNum < 1 || ageNum > 150) {
@@ -113,7 +121,30 @@ const FormContent = () => {
     }
   };
 
-  // PHONE INPUT WITH FORMATTING
+  // PHONE INPUT WITH FORMATTING for fatherPhone
+  const handleFatherPhoneChange = (e) => {
+    let value = e.target.value.replace(/\D/g, '').substring(0, 10);
+    
+    const rawDigits = value;
+    
+    // Auto-format display
+    if (value.length > 6) {
+      value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    } else if (value.length > 3) {
+      value = value.replace(/(\d{3})(\d{1,3})/, '$1-$2');
+    }
+    
+    setFormData(prev => ({ ...prev, fatherPhone: rawDigits }));
+    setErrors(prev => ({ ...prev, fatherPhone: "" }));
+
+    if (rawDigits.length > 0 && rawDigits.length !== 10) {
+      setErrors(prev => ({ ...prev, fatherPhone: "Must be 10 digits" }));
+    } else if (rawDigits.length === 10 && !/^[6-9]/.test(rawDigits)) {
+      setErrors(prev => ({ ...prev, fatherPhone: "Should start with 6-9" }));
+    }
+  };
+
+  // PHONE INPUT WITH FORMATTING for phone
   const handlePhoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, '').substring(0, 10);
     
@@ -211,6 +242,9 @@ const FormContent = () => {
       }
     }
 
+    // Occupation (optional)
+    // No validation for occupation as it's optional
+
     // Photo
     if (!formData.photo) {
       newErrors.photo = "Photo is required";
@@ -270,6 +304,7 @@ const FormContent = () => {
           address: "",
           Nationality: "",
           familyMembers: "",
+          occupation: "",
           photo: null,
         });
         
@@ -289,6 +324,10 @@ const FormContent = () => {
   // Format phone for display
   const displayPhone = formData.phone ? 
     formData.phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : 
+    '';
+
+  const displayFatherPhone = formData.fatherPhone ? 
+    formData.fatherPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') : 
     '';
 
   return (
@@ -330,6 +369,38 @@ const FormContent = () => {
                     className={errors.fatherName ? "input-error" : ""}
                   />
                   {errors.fatherName && <p className="error">{errors.fatherName}</p>}
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Father Phone Number *</label>
+                  <input
+                    type="text"
+                    name="fatherPhone"
+                    placeholder="Enter father's phone number"
+                    value={displayFatherPhone}
+                    maxLength="12"
+                    onChange={handleFatherPhoneChange}
+                    className={errors.fatherPhone ? "input-error" : ""}
+                  />
+                  <small className="hint">Format: XXX-XXX-XXXX</small>
+                  {errors.fatherPhone && <p className="error">{errors.fatherPhone}</p>}
+                </div>
+
+                <div className="form-group">
+                  <label>Relationship *</label>
+                  <select
+                    name="relationship"
+                    value={formData.relationship}
+                    onChange={handleChange}
+                    className={errors.relationship ? "input-error" : ""}
+                  >
+                    <option value="">Select relationship</option>
+                    <option value="Married">Married</option>
+                    <option value="Unmarried">Unmarried</option>
+                  </select>
+                  {errors.relationship && <p className="error">{errors.relationship}</p>}
                 </div>
               </div>
 
@@ -382,7 +453,7 @@ const FormContent = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Family Members</label>
+                  <label className="optional">Family Members</label>
                   <input
                     type="number"
                     name="familyMembers"
@@ -394,6 +465,19 @@ const FormContent = () => {
                     className={errors.familyMembers ? "input-error" : ""}
                   />
                   {errors.familyMembers && <p className="error">{errors.familyMembers}</p>}
+                </div>
+
+                <div className="form-group">
+                  <label className="optional">Occupation</label>
+                  <input
+                    type="text"
+                    name="occupation"
+                    placeholder="Enter occupation (optional)"
+                    value={formData.occupation}
+                    onChange={handleChange}
+                    className={errors.occupation ? "input-error" : ""}
+                  />
+                  {errors.occupation && <p className="error">{errors.occupation}</p>}
                 </div>
               </div>
             </div>
@@ -509,6 +593,7 @@ const FormContent = () => {
                     address: "",
                     Nationality: "",
                     familyMembers: "",
+                    occupation: "",
                     photo: null,
                   });
                   setErrors({});

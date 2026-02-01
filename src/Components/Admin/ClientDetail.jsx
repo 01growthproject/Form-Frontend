@@ -82,7 +82,7 @@ const ClientDetail = () => {
   };
 
   const generatePDFContent = (doc) => {
-    let yPos = 40;
+    let yPos = photoUrl ? 85 : 40; // Adjust yPos to account for photo height (40px + margin)
     
     // Helper function to add field
     const addField = (label, value) => {
@@ -105,9 +105,12 @@ const ClientDetail = () => {
     
     addField("Client Name", client.clientName);
     addField("Father Name", client.fatherName);
+    addField("Father Phone", client.fatherPhone);
     addField("Gender", client.gender);
     addField("Date of Birth", client.dob || "Not provided");
     addField("Age", client.age?.toString());
+    addField("Relationship", client.relationship);
+    addField("Occupation", client.occupation);
     
     yPos += 5;
     
@@ -121,16 +124,6 @@ const ClientDetail = () => {
     addField("Phone", client.phone);
     addField("Address", client.address);
     addField("Nationality", client.Nationality);
-    
-    yPos += 5;
-    
-    // Family Information
-    doc.setFontSize(14);
-    doc.setTextColor(102, 126, 234);
-    doc.text("Family Details", 20, yPos);
-    yPos += 8;
-    
-    addField("Family Members", client.familyMembers?.toString() || "Not provided");
     
     // Footer
     yPos += 10;
@@ -149,11 +142,28 @@ const ClientDetail = () => {
     setIsEditing(true);
   };
 
+  const calculateAgeFromDOB = (dob) => {
+    if (!dob) return "";
+    const birthDate = new Date(dob);
+    const today = new Date();
+    if (isNaN(birthDate.getTime())) return "";
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age > 0 ? age.toString() : "";
+  };
+
   const handleInputChange = (field, value) => {
     setEditData({
       ...editData,
       [field]: value,
     });
+    if (field === 'dob' && value) {
+      const calculatedAge = calculateAgeFromDOB(value);
+      setEditData(prev => ({ ...prev, age: calculatedAge }));
+    }
   };
 
   const handleNewPhotoCapture = (file) => {
@@ -207,7 +217,8 @@ const ClientDetail = () => {
       setNewPhotoPreview(null);
       toast.success("✅ Client updated successfully");
 
-      fetchClientDetail();
+      // Remove this call to prevent duplicate toasts or unnecessary re-fetch
+      // fetchClientDetail();
     } catch (err) {
       console.error("Error updating client:", err);
       toast.error(
@@ -382,6 +393,10 @@ const ClientDetail = () => {
                       <p>{client.fatherName}</p>
                     </div>
                     <div className="info-item">
+                      <label>Father Phone</label>
+                      <p>{client.fatherPhone}</p>
+                    </div>
+                    <div className="info-item">
                       <label>Email</label>
                       <p>{client.email}</p>
                     </div>
@@ -406,12 +421,16 @@ const ClientDetail = () => {
                       <p>{client.age}</p>
                     </div>
                     <div className="info-item">
-                      <label>Address</label>
-                      <p>{client.address}</p>
+                      <label>Relationship</label>
+                      <p>{client.relationship}</p>
                     </div>
                     <div className="info-item">
-                      <label>Family Members</label>
-                      <p>{client.familyMembers || "Not provided"}</p>
+                      <label>Occupation</label>
+                      <p>{client.occupation}</p>
+                    </div>
+                    <div className="info-item">
+                      <label>Address</label>
+                      <p>{client.address}</p>
                     </div>
                   </div>
 
@@ -427,7 +446,7 @@ const ClientDetail = () => {
               ) : (
                 <>
                   <div className="form-grid">
-                    {/* Edit form fields - same as before */}
+                    {/* Edit form fields - updated to match Form.jsx */}
                     <div className="form-group">
                       <label>Client Name</label>
                       <input
@@ -445,6 +464,16 @@ const ClientDetail = () => {
                         value={editData.fatherName}
                         onChange={(e) =>
                           handleInputChange("fatherName", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Father Phone</label>
+                      <input
+                        type="text"
+                        value={editData.fatherPhone}
+                        onChange={(e) =>
+                          handleInputChange("fatherPhone", e.target.value)
                         }
                       />
                     </div>
@@ -512,21 +541,34 @@ const ClientDetail = () => {
                       />
                     </div>
                     <div className="form-group">
+                      <label>Relationship</label>
+                      <select
+                        value={editData.relationship}
+                        onChange={(e) =>
+                          handleInputChange("relationship", e.target.value)
+                        }
+                      >
+                        <option value="">Select</option>
+                        <option value="Married">Married</option>
+                        <option value="Unmarried">Unmarried</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Occupation</label>
+                      <input
+                        type="text"
+                        value={editData.occupation}
+                        onChange={(e) =>
+                          handleInputChange("occupation", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div className="form-group full-width">
                       <label>Address</label>
                       <textarea
                         value={editData.address}
                         onChange={(e) =>
                           handleInputChange("address", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Family Members</label>
-                      <input
-                        type="number"
-                        value={editData.familyMembers}
-                        onChange={(e) =>
-                          handleInputChange("familyMembers", e.target.value)
                         }
                       />
                     </div>

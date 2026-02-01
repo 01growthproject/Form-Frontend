@@ -17,10 +17,10 @@ const Landing = () => {
         <div className="nav-container">
           <div className="nav-logo">
             <img src="/logo.jpg" alt="Logo" className="nav-logo-img" />
-            <div className="nav-logo-text">
+            {/* <div className="nav-logo-text">
               <h2>Growth Overseas</h2>
               <span>International Edutech</span>
-            </div>
+            </div> */}
           </div>
           <Link to="/login" className="nav-login-btn">
             Login
@@ -107,7 +107,7 @@ const Landing = () => {
                 Empowering dreams • Connecting futures • Building success
               </p>
               <p className="footer-copyright">
-                © 2025 Growth Overseas International Edutech. All rights reserved.
+                © 2018 Growth Overseas International Edutech. All rights reserved.
               </p>
             </div>
 

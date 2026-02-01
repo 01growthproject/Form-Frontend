@@ -43,14 +43,14 @@ const AdminContent = () => {
   const filteredClients = clients.filter((client) => {
     const name = client.clientName?.toLowerCase() || "";
     const phone = client.phone || "";
-    const country = client.country?.toLowerCase() || "";
+    const Nationality = client.Nationality?.toLowerCase() || "";
     const email = client.email?.toLowerCase() || "";
     const search = searchTerm.toLowerCase();
 
     return (
       name.includes(search) ||
       phone.includes(search) ||
-      country.includes(search) ||
+      Nationality.includes(search) ||
       email.includes(search)
     );
   });

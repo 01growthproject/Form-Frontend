@@ -150,7 +150,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(244, 242, 246, 0.95);
   /* background: linear-gradient(135deg, #1a1f31 0%, #764ba2 100%); */
   backdrop-filter: blur(20px);
   box-shadow: var(--shadow-sm);
@@ -187,7 +187,7 @@ body {
 }
 
 .nav-logo-img {
-  width: 170px;
+  width: 200px;
   height: 55px;
   object-fit: contain;
   border-radius: var(--radius-md);
