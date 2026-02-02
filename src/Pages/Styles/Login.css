@@ -1,27 +1,52 @@
 .login-container {
   min-height: 100vh;
-  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-  background: linear-gradient(135deg, #1a1f31 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 25%, #4c1d95 50%, #831843 75%, #9f1239 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .login-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  max-width: 900px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 500px;
   width: 100%;
+  margin: 0 auto;
 }
 
 .login-card {
-  background-color: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  padding: 48px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   animation: slideInLeft 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2, #ec4899);
 }
 
 .login-header {
@@ -145,22 +170,41 @@
 }
 
 .login-btn {
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background: linear-gradient(135deg, #1a1f31 0%, #764ba2 100%);
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 5s ease infinite;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: 10px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.login-btn:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.5);
 }
 
 .login-btn:disabled {
@@ -185,54 +229,6 @@
   text-decoration: underline;
 }
 
-.login-info {
-  display: flex;
-  align-items: center;
-  animation: slideInRight 0.6s ease-out;
-}
-
-.info-content {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  padding: 40px;
-  border-radius: 12px;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-align: center;
-}
-
-.info-content h3 {
-  margin: 0 0 10px 0;
-  font-size: 26px;
-  font-weight: 700;
-}
-
-.info-content p {
-  margin: 0 0 30px 0;
-  font-size: 15px;
-  opacity: 0.9;
-}
-
-.benefits {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.benefit {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.benefit-icon {
-  font-size: 24px;
-}
-
-.benefit p {
-  margin: 0;
-  font-size: 14px;
-}
 
 @keyframes slideInLeft {
   from {
@@ -245,49 +241,124 @@
   }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
-@media (max-width: 768px) {
+/* ==================== RESPONSIVE ==================== */
+
+/* Tablet (iPad) - 768px to 1024px */
+@media (max-width: 1024px) and (min-width: 769px) {
   .login-wrapper {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    max-width: 500px;
   }
 
   .login-card {
-    padding: 30px;
+    padding: 40px;
+  }
+}
+
+/* Mobile - 768px and below */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 20px 16px;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-top: 80px;
+  }
+
+  .login-wrapper {
+    max-width: 100%;
+  }
+
+  .login-card {
+    padding: 28px 24px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .login-header {
+    margin-bottom: 24px;
   }
 
   .login-header h2 {
     font-size: 24px;
+    margin-bottom: 6px;
   }
 
-  .login-info {
-    order: -1;
+  .login-header p {
+    font-size: 13px;
   }
 
-  .info-content {
-    padding: 20px;
+  .login-form {
+    gap: 18px;
   }
 
-  .info-content h3 {
+  .form-group {
+    gap: 8px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 10px;
+    min-height: 48px;
+  }
+
+  .login-btn {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 48px;
+    margin-top: 8px;
+  }
+
+}
+
+/* Small Mobile - 480px and below */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px 12px;
+    padding-top: 70px;
+  }
+
+  .login-card {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .login-header h2 {
+    font-size: 22px;
+  }
+
+  .login-header p {
+    font-size: 12px;
+  }
+
+  .form-group input {
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+
+  .login-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+}
+
+/* Extra Small Mobile - 360px and below */
+@media (max-width: 360px) {
+  .login-card {
+    padding: 20px 16px;
+  }
+
+  .login-header h2 {
     font-size: 20px;
   }
 
-  .benefits {
-    flex-direction: row;
-  }
-
-  .benefit {
-    flex-direction: column;
-    gap: 8px;
+  .form-group input {
+    padding: 10px 12px;
   }
 }

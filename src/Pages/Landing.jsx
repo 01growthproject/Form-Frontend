@@ -31,15 +31,18 @@ const Landing = () => {
       <section className="hero-section">
         <div className="hero-container">
           <div className="hero-content">
+            <div className="hero-badge">
+              <span className="badge-icon">✨</span>
+              <span className="badge-text">Professional Client Management System</span>
+            </div>
+
             <h1 className="hero-title">
-              Transform Your International
-              <span className="hero-title-gradient">Education Journey </span>
-              
+              Transform Your
+              <span className="hero-title-gradient"> International Education Journey</span>
             </h1>
 
             <p className="hero-subtitle">
-            
-              Secure, fast, and designed for global education consultants.
+              Streamline your global education consulting with our secure, fast, and intuitive platform designed specifically for education consultants and agencies.
             </p>
 
             <div className="hero-cta">
@@ -52,28 +55,34 @@ const Landing = () => {
                 <span className="cta-arrow">→</span>
               </Link>
 
-              <div className="hero-stats">
+              <div className="hero-stats-container">
                 <div className="stat-item">
-                  <span className="stat-icon">⚡</span>
+                  <div className="stat-icon-wrapper">
+                    <span className="stat-icon">⚡</span>
+                  </div>
                   <div className="stat-content">
                     <span className="stat-number">Fast</span>
                     <span className="stat-label">Setup</span>
                   </div>
                 </div>
-                <div className="stat-divider"></div>
+                
                 <div className="stat-item">
-                  <span className="stat-icon">🔒</span>
+                  <div className="stat-icon-wrapper">
+                    <span className="stat-icon">🔒</span>
+                  </div>
                   <div className="stat-content">
                     <span className="stat-number">Secure</span>
-                    <span className="stat-label">Data</span>
+                    <span className="stat-label">Data Protection</span>
                   </div>
                 </div>
-                <div className="stat-divider"></div>
+                
                 <div className="stat-item">
-                  <span className="stat-icon">🌐</span>
+                  <div className="stat-icon-wrapper">
+                    <span className="stat-icon">🌐</span>
+                  </div>
                   <div className="stat-content">
                     <span className="stat-number">Global</span>
-                    <span className="stat-label">Access</span>
+                    <span className="stat-label">Reach</span>
                   </div>
                 </div>
               </div>
@@ -81,11 +90,44 @@ const Landing = () => {
           </div>
 
           <div className="hero-visual">
-            <div className="visual-card">
-              <div className="visual-icon">🎓</div>
+            <div className="visual-card main-card">
+              <div className="card-header">
+                <div className="card-icon">🎓</div>
+                <div className="card-badge">Live</div>
+              </div>
               <div className="visual-content">
-                <h3>Client Portal</h3>
-                <p>Manage registrations efficiently</p>
+                <h3>Client Management Portal</h3>
+                <p>Efficiently manage student registrations, track applications, and streamline your workflow</p>
+                <div className="card-features">
+                  <div className="feature-item">
+                    <span className="feature-check">✓</span>
+                    <span>Real-time Updates</span>
+                  </div>
+                  <div className="feature-item">
+                    <span className="feature-check">✓</span>
+                    <span>Secure Storage</span>
+                  </div>
+                  <div className="feature-item">
+                    <span className="feature-check">✓</span>
+                    <span>Easy Access</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="floating-card card-1">
+              <div className="mini-icon">📊</div>
+              <div className="mini-text">
+                <span className="mini-title">Analytics</span>
+                <span className="mini-subtitle">Track Progress</span>
+              </div>
+            </div>
+            
+            <div className="floating-card card-2">
+              <div className="mini-icon">📝</div>
+              <div className="mini-text">
+                <span className="mini-title">Forms</span>
+                <span className="mini-subtitle">Quick Register</span>
               </div>
             </div>
           </div>

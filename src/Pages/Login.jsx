@@ -230,28 +230,6 @@ const Login = () => {
             </form>
           )}
         </div>
-
-        <div className="login-info">
-          <div className="info-content">
-            <h3>🏢 Growth Overseas</h3>
-            <p>Secure OTP-based authentication</p>
-
-            <div className="benefits">
-              <div className="benefit">
-                <span className="benefit-icon">🔒</span>
-                <p>OTP Security</p>
-              </div>
-              <div className="benefit">
-                <span className="benefit-icon">📧</span>
-                <p>Email Verification</p>
-              </div>
-              <div className="benefit">
-                <span className="benefit-icon">⚡</span>
-                <p>Quick Access</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

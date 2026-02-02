@@ -39,102 +39,136 @@ const ClientDetail = () => {
 
   // ✅ PDF Download Function
   const handleDownloadPDF = async () => {
-    try {
-      const doc = new jsPDF();
-      
-      // Title
-      doc.setFontSize(20);
-      doc.setTextColor(102, 126, 234);
-      doc.text("CLIENT INFORMATION", 105, 20, { align: "center" });
-      
-      // Line
-      doc.setDrawColor(102, 126, 234);
-      doc.setLineWidth(0.5);
-      doc.line(20, 25, 190, 25);
-      
-      // Photo (if available)
-      const photoUrl = client.photo;
-      if (photoUrl) {
-        try {
-          // Convert photo to base64
-          const response = await fetch(photoUrl);
-          const blob = await response.blob();
-          const reader = new FileReader();
-          
-          reader.onloadend = () => {
-            const base64data = reader.result;
-            doc.addImage(base64data, 'JPEG', 150, 35, 40, 40);
-            generatePDFContent(doc);
-          };
-          reader.readAsDataURL(blob);
-        } catch (error) {
-          console.error("Error loading photo:", error);
+  try {
+    const doc = new jsPDF("p", "mm", "a4");
+
+    // ===== HEADER =====
+    doc.setFillColor(102, 126, 234);
+    doc.rect(0, 0, 210, 28, "F");
+
+    doc.setFontSize(20);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.text("CLIENT INFORMATION FORM", 105, 18, { align: "center" });
+
+    // Divider
+    doc.setDrawColor(226, 232, 240);
+    doc.line(0, 30, 210, 30);
+
+    // ===== PHOTO SECTION (RIGHT SIDE – BIG) =====
+    const photoX = 120;
+    const photoY = 40;
+    const photoWidth = 70;
+    const photoHeight = 90;
+
+    if (client.photo) {
+      try {
+        const response = await fetch(client.photo);
+        const blob = await response.blob();
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          doc.setDrawColor(102, 126, 234);
+          doc.rect(photoX - 2, photoY - 2, photoWidth + 4, photoHeight + 4);
+          doc.addImage(reader.result, "JPEG", photoX, photoY, photoWidth, photoHeight);
           generatePDFContent(doc);
-        }
-      } else {
+        };
+
+        reader.readAsDataURL(blob);
+      } catch {
         generatePDFContent(doc);
       }
-      
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF");
+    } else {
+      doc.setDrawColor(148, 163, 184);
+      doc.rect(photoX, photoY, photoWidth, photoHeight);
+      doc.setFontSize(12);
+      doc.setTextColor(148, 163, 184);
+      doc.text("No Photo", photoX + 22, photoY + 45);
+      generatePDFContent(doc);
     }
+
+  } catch (error) {
+    console.error(error);
+    toast.error("❌ PDF generation failed");
+  }
+};
+
+const generatePDFContent = (doc) => {
+  let y = 45;
+
+  const labelX = 20;
+  const valueX = 55;
+
+  const addRow = (label, value) => {
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139);
+    doc.text(label, labelX, y);
+
+    doc.setFontSize(11);
+    doc.setTextColor(30, 41, 59);
+    doc.text(value || "N/A", valueX, y);
+
+    y += 9;
   };
 
-  const generatePDFContent = (doc) => {
-    let yPos = photoUrl ? 85 : 40; // Adjust yPos to account for photo height (40px + margin)
-    
-    // Helper function to add field
-    const addField = (label, value) => {
-      doc.setFontSize(10);
-      doc.setTextColor(100, 116, 139);
-      doc.text(label + ":", 20, yPos);
-      
-      doc.setFontSize(11);
-      doc.setTextColor(30, 41, 59);
-      doc.text(value || "N/A", 70, yPos);
-      
-      yPos += 10;
-    };
-    
-    // Personal Information
-    doc.setFontSize(14);
-    doc.setTextColor(102, 126, 234);
-    doc.text("Personal Details", 20, yPos);
-    yPos += 8;
-    
-    addField("Client Name", client.clientName);
-    addField("Father Name", client.fatherName);
-    addField("Father Phone", client.fatherPhone);
-    addField("Gender", client.gender);
-    addField("Date of Birth", client.dob || "Not provided");
-    addField("Age", client.age?.toString());
-    addField("Relationship", client.relationship);
-    addField("Occupation", client.occupation);
-    
-    yPos += 5;
-    
-    // Contact Information
-    doc.setFontSize(14);
-    doc.setTextColor(102, 126, 234);
-    doc.text("Contact Details", 20, yPos);
-    yPos += 8;
-    
-    addField("Email", client.email);
-    addField("Phone", client.phone);
-    addField("Address", client.address);
-    addField("Nationality", client.Nationality);
-    
-    // Footer
-    yPos += 10;
-    doc.setFontSize(9);
-    doc.setTextColor(148, 163, 184);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, yPos, { align: "center" });
-    
-    // Save PDF
-    doc.save(`${client.clientName}_Details.pdf`);
-    toast.success("PDF downloaded successfully! ✅");
-  };
+  // ===== LEFT FORM BORDER =====
+  doc.setDrawColor(226, 232, 240);
+  doc.rect(15, 38, 95, 120);
+
+  // ===== SECTION TITLE =====
+  doc.setFontSize(14);
+  doc.setTextColor(102, 126, 234);
+  doc.setFont("helvetica", "bold");
+  doc.text("Personal Details", 20, y);
+  y += 10;
+
+  doc.setFont("helvetica", "normal");
+
+  addRow("Client Name", client.clientName);
+  addRow("Father Name", client.fatherName);
+  addRow("Father Phone", client.fatherPhone);
+  addRow("Gender", client.gender);
+  addRow(
+    "DOB",
+    client.dob ? new Date(client.dob).toLocaleDateString() : "N/A"
+  );
+  addRow("Age", client.age?.toString());
+  addRow("Relationship", client.relationship);
+  addRow("Occupation", client.occupation);
+
+  y += 6;
+
+  // ===== CONTACT DETAILS =====
+  doc.setFontSize(14);
+  doc.setTextColor(102, 126, 234);
+  doc.setFont("helvetica", "bold");
+  doc.text("Contact Details", 20, y);
+  y += 10;
+
+  doc.setFont("helvetica", "normal");
+
+  addRow("Email", client.email);
+  addRow("Phone", client.phone);
+  addRow("Nationality", client.Nationality);
+  addRow("Address", client.address);
+
+  // ===== FOOTER =====
+  doc.setDrawColor(226, 232, 240);
+  doc.line(20, 265, 190, 265);
+
+  doc.setFontSize(9);
+  doc.setTextColor(148, 163, 184);
+  doc.text(
+    `Generated on ${new Date().toLocaleString()}`,
+    105,
+    272,
+    { align: "center" }
+  );
+
+  doc.save(`${client.clientName}_Client_Form.pdf`);
+  toast.success("📄 Professional PDF downloaded!");
+};
+
 
   const handleEditStart = () => {
     setEditData({ ...client });
@@ -284,7 +318,7 @@ const ClientDetail = () => {
               <button
                 onClick={handleDownloadPDF}
                 className="btn-action edit"
-                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white' }}
+                style={{ background: 'linear-gradient(135deg, #4582d2 0%, #e0e7ff 100%)', color: 'white' }}
               >
                 📄 Download PDF
               </button>
@@ -414,7 +448,7 @@ const ClientDetail = () => {
                     </div>
                     <div className="info-item">
                       <label>Date of Birth</label>
-                      <p>{client.dob || "Not provided"}</p>
+                      <p>{client.dob ? new Date(client.dob).toLocaleDateString() : "Not provided"}</p>
                     </div>
                     <div className="info-item">
                       <label>Age</label>
@@ -524,7 +558,7 @@ const ClientDetail = () => {
                       <label>Date of Birth</label>
                       <input
                         type="date"
-                        value={editData.dob}
+                        value={editData.dob ? new Date(editData.dob).toISOString().split('T')[0] : ''}
                         onChange={(e) =>
                           handleInputChange("dob", e.target.value)
                         }
