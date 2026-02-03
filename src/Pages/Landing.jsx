@@ -61,28 +61,28 @@ const Landing = () => {
                     <span className="stat-icon">⚡</span>
                   </div>
                   <div className="stat-content">
-                    <span className="stat-number">Fast</span>
-                    <span className="stat-label">Setup</span>
+                    <span className="stat-number">Fast Setup</span>
+                    {/* <span className="stat-label">Setup</span> */}
                   </div>
                 </div>
-                
+
                 <div className="stat-item">
                   <div className="stat-icon-wrapper">
                     <span className="stat-icon">🔒</span>
                   </div>
                   <div className="stat-content">
-                    <span className="stat-number">Secure</span>
-                    <span className="stat-label">Data Protection</span>
+                    <span className="stat-number">Data Secure</span>
+                    {/* <span className="stat-label">Secure</span> */}
                   </div>
                 </div>
-                
+
                 <div className="stat-item">
                   <div className="stat-icon-wrapper">
                     <span className="stat-icon">🌐</span>
                   </div>
                   <div className="stat-content">
-                    <span className="stat-number">Global</span>
-                    <span className="stat-label">Reach</span>
+                    <span className="stat-number">Global Reach</span>
+                    {/* <span className="stat-label">Reach</span> */}
                   </div>
                 </div>
               </div>
@@ -114,7 +114,7 @@ const Landing = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="floating-card card-1">
               <div className="mini-icon">📊</div>
               <div className="mini-text">
@@ -122,7 +122,7 @@ const Landing = () => {
                 <span className="mini-subtitle">Track Progress</span>
               </div>
             </div>
-            
+
             <div className="floating-card card-2">
               <div className="mini-icon">📝</div>
               <div className="mini-text">
@@ -139,7 +139,7 @@ const Landing = () => {
           <div className="footer-top">
             <div className="footer-brand">
               <div className="footer-logo">
-                <span className="footer-logo-icon">🌍</span>
+                {/* <span className="footer-logo-icon">🌍</span> */}
                 <div className="footer-logo-text">
                   <h3>Growth Overseas</h3>
                   <span>International Edutech</span>
@@ -163,13 +163,17 @@ const Landing = () => {
                 <h4>Contact</h4>
                 <p>📞 +91 98545 90005</p>
                 <p>📍 Zirakpur, Punjab</p>
-                <p>🌐 Ambala-Chandigarh Expy</p>
+                <p>🌐 First floor, SCO 10-11,
+                  Ambala Road,
+                  Opposite to ICICI Bank
+                </p>
+
               </div>
             </div>
           </div>
         </div>
-      </footer>
-    </div>
+      </footer >
+    </div >
   );
 };
 
