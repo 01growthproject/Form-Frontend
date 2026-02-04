@@ -198,15 +198,15 @@
 }
 
 .submit-btn {
-  padding: 16px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+  padding: 16px;
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   background-size: 200% 200%;
   animation: gradientShift 5s ease infinite;
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -249,12 +249,12 @@
 }
 
 .clear-btn {
-  padding: 14px 30px;
+  padding: 16px;
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -565,4 +565,110 @@
   .form-group textarea {
     padding: 10px;
   }
+}
+
+/* =========================
+   CAMERA BUTTONS
+========================= */
+
+.camera-btn,
+.capture-btn,
+.switch-btn,
+.retake-btn {
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+  color: #374151;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: block;
+  margin: 0 auto;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  width: fit-content;
+}
+
+.camera-btn::before,
+.capture-btn::before,
+.switch-btn::before,
+.retake-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.camera-btn:hover,
+.capture-btn:hover,
+.switch-btn:hover,
+.retake-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+.camera-btn:hover::before,
+.capture-btn:hover::before,
+.switch-btn:hover::before,
+.retake-btn:hover::before {
+  left: 100%;
+}
+
+.camera-btn:active,
+.capture-btn:active,
+.switch-btn:active,
+.retake-btn:active {
+  transform: translateY(0) scale(0.98);
+  transition: all 0.15s ease;
+}
+
+.capture-btn {
+  background: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+}
+
+.switch-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #fcd34d 100%);
+}
+
+.retake-btn {
+  background: linear-gradient(135deg, #f87171 0%, #fca5a5 100%);
+}
+
+/* Pulse animation for capture button */
+.capture-btn {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(52, 211, 153, 0.4);
+  }
+  100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* Rotate animation for switch button */
+.switch-btn:hover {
+  animation: rotate 0.6s ease-in-out;
+}
+
+@keyframes rotate {
+  0% { transform: translateY(-2px) scale(1.05) rotate(0deg); }
+  25% { transform: translateY(-2px) scale(1.05) rotate(90deg); }
+  50% { transform: translateY(-2px) scale(1.05) rotate(180deg); }
+  75% { transform: translateY(-2px) scale(1.05) rotate(270deg); }
+  100% { transform: translateY(-2px) scale(1.05) rotate(360deg); }
 }

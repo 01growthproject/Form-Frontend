@@ -36,7 +36,7 @@ const CameraInput = ({ label, name, setFile, error }) => {
       <label>{label} *</label>
 
       {!cameraOn && !preview && (
-        <button type="button" onClick={startCamera}>
+        <button type="button" onClick={startCamera} className="camera-btn">
           📷 Open Camera
         </button>
       )}
@@ -51,11 +51,11 @@ const CameraInput = ({ label, name, setFile, error }) => {
           />
 
           <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-            <button type="button" onClick={capture}>
+            <button type="button" onClick={capture} className="capture-btn">
               📸 Capture
             </button>
 
-            <button type="button" onClick={switchCamera}>
+            <button type="button" onClick={switchCamera} className="switch-btn">
               🔄 Switch Camera
             </button>
           </div>
@@ -65,7 +65,7 @@ const CameraInput = ({ label, name, setFile, error }) => {
       {preview && (
         <>
           <img src={preview} alt="preview" width="100%" />
-          <button type="button" onClick={() => setPreview(null)}>
+          <button type="button" onClick={() => setPreview(null)} className="retake-btn">
             🔄 Retake
           </button>
         </>
@@ -75,5 +75,6 @@ const CameraInput = ({ label, name, setFile, error }) => {
     </div>
   );
 };
+
 
 export default CameraInput;
