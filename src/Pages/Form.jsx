@@ -4,45 +4,136 @@ import { toast } from "react-toastify";
 import Navbar from "../Components/Navbar/Navbar.jsx";
 import CameraInput from "../Components/Admin/CameraInput.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
-
 import "./Styles/Form.css";
 
-const VITE_API_URL_FORM = import.meta.env.VITE_API_URL_FORM;
+const API = import.meta.env.VITE_API_URL_FORM;
 
 const FormContent = () => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
+    /* BASIC */
     clientName: "",
-    fatherName: "",
+    surname: "",
+    contact: "",
+    email: "",
     gender: "",
     dob: "",
     age: "",
-    phone: "",
-    email: "",
-    address: "",
-    Nationality: "",
-    familyMembers: "",
+    nationality: "",
+    maritalStatus: "",
+    education: "",
     occupation: "",
+    address: "",
+    familyMembersCount: 0,
+
+    /* FATHER */
+    fatherName: "",
+    fatherSurname: "",
+    fatherPhone: "",
+    fatherEmail: "",
+
+    /* MOTHER */
+    motherName: "",
+    motherSurname: "",
+    motherPhone: "",
+    motherEmail: "",
+
+    /* SPOUSE */
+    spouseName: "",
+    spouseSurname: "",
+    spousePhone: "",
+    spouseEmail: "",
+
+    /* DOC NUMBERS */
+    aadhaarCardNo: "",
+    panCardNo: "",
+    passportNo: "",
+    drivingLicenseNo: "",
+    voterCardNo: "",
+
+    /* FILES */
     photo: null,
+    documents: [],
   });
 
-  const [errors, setErrors] = useState({});
+  const [documentsMeta, setDocumentsMeta] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // Supported file types for photo
-  const SUPPORTED_IMAGE_TYPES = [
-    'image/jpeg', 'image/jpg', 'image/png', 'image/webp',
-    'image/gif', 'image/bmp', 'image/tiff'
+  const totalSteps = 6;
+
+  const stepTitles = [
+    "Basic Information",
+    "Document Numbers",
+    "Family Details",
+    "Document Capture",
+    "Passport Size Photo",
+    "Review & Submit"
   ];
 
-  // Calculate age from DOB
-  const calculateAgeFromDOB = (dob) => {
-    if (!dob) return "";
+  /* ======================
+     VALIDATION FUNCTIONS
+  ====================== */
 
+  // Email validation
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Phone validation (10 digits)
+  const isValidPhone = (phone) => {
+    const phoneRegex = /^[0-9]{10}$/;
+    return phoneRegex.test(phone);
+  };
+
+  // Aadhaar validation (12 digits)
+  const isValidAadhaar = (aadhaar) => {
+    const aadhaarRegex = /^[0-9]{12}$/;
+    return aadhaarRegex.test(aadhaar);
+  };
+
+  // PAN validation (ABCDE1234F format)
+  const isValidPAN = (pan) => {
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    return panRegex.test(pan.toUpperCase());
+  };
+
+  // Passport validation (8-9 alphanumeric characters)
+  const isValidPassport = (passport) => {
+    const passportRegex = /^[A-Z0-9]{8,9}$/;
+    return passportRegex.test(passport.toUpperCase());
+  };
+
+  // Driving License validation
+  const isValidDrivingLicense = (license) => {
+    const licenseRegex = /^[A-Z]{2}[0-9]{13}$/;
+    return licenseRegex.test(license.toUpperCase());
+  };
+
+  // Voter Card validation
+  const isValidVoterCard = (voterCard) => {
+    const voterRegex = /^[A-Z]{3}[0-9]{7}$/;
+    return voterRegex.test(voterCard.toUpperCase());
+  };
+
+  // Age validation
+  const isValidAge = (age) => {
+    const ageNum = parseInt(age);
+    return ageNum >= 1 && ageNum <= 120;
+  };
+
+  // Name validation (only letters and spaces)
+  const isValidName = (name) => {
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    return nameRegex.test(name) && name.trim().length >= 2;
+  };
+
+  // Calculate age from DOB
+  const calculateAge = (dob) => {
+    if (!dob) return "";
     const birthDate = new Date(dob);
     const today = new Date();
-
-    if (isNaN(birthDate.getTime())) return "";
-
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
@@ -50,554 +141,1508 @@ const FormContent = () => {
       age--;
     }
 
-    return age > 0 ? age.toString() : "";
+    return age.toString();
   };
 
-  // INPUT CHANGE
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    const updatedValue = files ? files[0] : value;
+  /* ======================
+     VALIDATE INDIVIDUAL FIELD
+  ====================== */
+  const validateField = (name, value) => {
+    let error = '';
 
-    // Special handling for DOB to auto-calculate age
-    if (name === 'dob' && value) {
-      const calculatedAge = calculateAgeFromDOB(value);
-      setFormData(prev => ({
+    switch (name) {
+      // Basic Information
+      case 'clientName':
+      case 'surname':
+        if (!value.trim()) {
+          error = 'This field is required';
+        } else if (!isValidName(value)) {
+          error = 'Only letters and spaces allowed (min 2 characters)';
+        }
+        break;
+
+      case 'contact':
+        if (!value.trim()) {
+          error = 'Contact number is required';
+        } else if (!isValidPhone(value)) {
+          error = 'Enter valid 10-digit phone number';
+        }
+        break;
+
+      case 'email':
+        if (value.trim() && !isValidEmail(value)) {
+          error = 'Enter valid email address';
+        }
+        break;
+
+      case 'dob':
+        if (!value) {
+          error = 'Date of birth is required';
+        } else {
+          const birthDate = new Date(value);
+          const today = new Date();
+          if (birthDate > today) {
+            error = 'Date cannot be in the future';
+          }
+        }
+        break;
+
+      case 'age':
+        if (!value) {
+          error = 'Age is required';
+        } else if (!isValidAge(value)) {
+          error = 'Enter valid age (1-120)';
+        }
+        break;
+
+      case 'gender':
+        if (!value) {
+          error = 'Gender is required';
+        }
+        break;
+
+      case 'maritalStatus':
+        if (!value) {
+          error = 'Marital status is required';
+        }
+        break;
+
+      case 'nationality':
+        if (!value.trim()) {
+          error = 'Nationality is required';
+        } else if (!isValidName(value)) {
+          error = 'Enter valid nationality';
+        }
+        break;
+
+      case 'education':
+        if (value.trim() && !isValidName(value)) {
+          error = 'Only letters and spaces allowed';
+        }
+        break;
+
+      case 'familyMembersCount':
+        if (value && (parseInt(value) < 0 || parseInt(value) > 50)) {
+          error = 'Enter valid number (0-50)';
+        }
+        break;
+
+      // Document Numbers
+      case 'aadhaarCardNo':
+        if (!value.trim()) {
+          error = 'Aadhaar number is required';
+        } else if (!isValidAadhaar(value)) {
+          error = 'Enter valid 12-digit Aadhaar number';
+        }
+        break;
+
+      case 'panCardNo':
+        if (!value.trim()) {
+          error = 'PAN number is required';
+        } else if (!isValidPAN(value)) {
+          error = 'Enter valid PAN (e.g., ABCDE1234F)';
+        }
+        break;
+
+      case 'passportNo':
+        if (value.trim() && !isValidPassport(value)) {
+          error = 'Enter valid passport number (8-9 characters)';
+        }
+        break;
+
+      case 'drivingLicenseNo':
+        if (value.trim() && !isValidDrivingLicense(value)) {
+          error = 'Enter valid license (e.g., MH1234567890123)';
+        }
+        break;
+
+      case 'voterCardNo':
+        if (value.trim() && !isValidVoterCard(value)) {
+          error = 'Enter valid voter card (e.g., ABC1234567)';
+        }
+        break;
+
+      // Family Details
+      case 'fatherName':
+      case 'fatherSurname':
+      case 'motherName':
+      case 'motherSurname':
+        if (!value.trim()) {
+          error = 'This field is required';
+        } else if (!isValidName(value)) {
+          error = 'Only letters and spaces allowed (min 2 characters)';
+        }
+        break;
+
+      case 'fatherPhone':
+      case 'motherPhone':
+        if (!value.trim()) {
+          error = 'Phone number is required';
+        } else if (!isValidPhone(value)) {
+          error = 'Enter valid 10-digit phone number';
+        }
+        break;
+
+      case 'fatherEmail':
+      case 'motherEmail':
+      case 'spouseEmail':
+        if (value.trim() && !isValidEmail(value)) {
+          error = 'Enter valid email address';
+        }
+        break;
+
+      case 'spouseName':
+      case 'spouseSurname':
+        if (value.trim() && !isValidName(value)) {
+          error = 'Only letters and spaces allowed (min 2 characters)';
+        }
+        break;
+
+      case 'spousePhone':
+        if (value.trim() && !isValidPhone(value)) {
+          error = 'Enter valid 10-digit phone number';
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return error;
+  };
+
+  /* ======================
+     HANDLE CHANGE
+  ====================== */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    console.log("🟢 Field Changed:", name, "=>", value);
+
+    // If DOB changes, auto-calculate age
+    if (name === "dob") {
+      const calculatedAge = calculateAge(value);
+
+      console.log("📌 DOB Selected:", value);
+      console.log("🎯 Auto Age Calculated:", calculatedAge);
+
+      setFormData((prev) => ({
         ...prev,
         [name]: value,
-        age: calculatedAge || prev.age
+        age: calculatedAge,
       }));
     } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      console.log("🧹 Clearing Error for:", name);
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+
+  /* ======================
+     HANDLE BLUR (VALIDATE ON BLUR)
+  ====================== */
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    console.log("🟡 Blur Event:", name);
+
+    const error = validateField(name, value);
+
+    if (error) {
+      console.log("❌ Validation Error:", error);
+
+      setErrors((prev) => ({ ...prev, [name]: error }));
+    } else {
+      console.log("✅ Field Valid:", name);
+
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+
+  /* ======================
+     VALIDATE STEP
+  ====================== */
+  const validateStep = (step) => {
+    const newErrors = {};
+    let isValid = true;
+
+    switch (step) {
+      case 1: // Basic Information
+        const basicFields = [
+          'clientName', 'surname', 'contact', 'dob', 'age',
+          'gender', 'maritalStatus', 'nationality'
+        ];
+
+        basicFields.forEach(field => {
+          const error = validateField(field, formData[field]);
+          if (error) {
+            newErrors[field] = error;
+            isValid = false;
+          }
+        });
+
+        // Validate optional email if provided
+        if (formData.email) {
+          const emailError = validateField('email', formData.email);
+          if (emailError) {
+            newErrors.email = emailError;
+            isValid = false;
+          }
+        }
+
+        // Validate optional fields if provided
+        if (formData.education) {
+          const educationError = validateField('education', formData.education);
+          if (educationError) {
+            newErrors.education = educationError;
+            isValid = false;
+          }
+        }
+
+        if (formData.familyMembersCount) {
+          const familyError = validateField('familyMembersCount', formData.familyMembersCount);
+          if (familyError) {
+            newErrors.familyMembersCount = familyError;
+            isValid = false;
+          }
+        }
+        break;
+
+      case 2: // Document Numbers
+        // Required documents
+        const requiredDocs = ['aadhaarCardNo', 'panCardNo'];
+        requiredDocs.forEach(field => {
+          const error = validateField(field, formData[field]);
+          if (error) {
+            newErrors[field] = error;
+            isValid = false;
+          }
+        });
+
+        // Optional documents - validate only if provided
+        const optionalDocs = ['passportNo', 'drivingLicenseNo', 'voterCardNo'];
+        optionalDocs.forEach(field => {
+          if (formData[field]) {
+            const error = validateField(field, formData[field]);
+            if (error) {
+              newErrors[field] = error;
+              isValid = false;
+            }
+          }
+        });
+        break;
+
+      case 3: // Family Details
+        const familyFields = [
+          'fatherName', 'fatherSurname', 'fatherPhone',
+          'motherName', 'motherSurname', 'motherPhone'
+        ];
+
+        familyFields.forEach(field => {
+          const error = validateField(field, formData[field]);
+          if (error) {
+            newErrors[field] = error;
+            isValid = false;
+          }
+        });
+
+        // Validate optional emails if provided
+        if (formData.fatherEmail) {
+          const error = validateField('fatherEmail', formData.fatherEmail);
+          if (error) {
+            newErrors.fatherEmail = error;
+            isValid = false;
+          }
+        }
+
+        if (formData.motherEmail) {
+          const error = validateField('motherEmail', formData.motherEmail);
+          if (error) {
+            newErrors.motherEmail = error;
+            isValid = false;
+          }
+        }
+
+        // Validate spouse details if married and provided
+        if (formData.maritalStatus === "Married") {
+          if (formData.spouseName) {
+            const error = validateField('spouseName', formData.spouseName);
+            if (error) {
+              newErrors.spouseName = error;
+              isValid = false;
+            }
+          }
+          if (formData.spouseSurname) {
+            const error = validateField('spouseSurname', formData.spouseSurname);
+            if (error) {
+              newErrors.spouseSurname = error;
+              isValid = false;
+            }
+          }
+          if (formData.spousePhone) {
+            const error = validateField('spousePhone', formData.spousePhone);
+            if (error) {
+              newErrors.spousePhone = error;
+              isValid = false;
+            }
+          }
+          if (formData.spouseEmail) {
+            const error = validateField('spouseEmail', formData.spouseEmail);
+            if (error) {
+              newErrors.spouseEmail = error;
+              isValid = false;
+            }
+          }
+        }
+        break;
+
+      case 4: // Document Capture
+        // Documents are optional
+        isValid = true;
+        break;
+
+      case 5: // Passport Size Photo
+        if (!formData.photo) {
+          newErrors.photo = 'Passport photo is required';
+          isValid = false;
+        }
+        break;
+
+      default:
+        isValid = true;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  /* ======================
+     DOCUMENT CAPTURE (LIVE)
+  ====================== */
+  const handleDocumentCapture = (type, file) => {
+
+    console.log("📸 Document Captured:", type);
+    console.log("📂 File Object:", file);
+
+    const existingIndex = documentsMeta.findIndex(doc => doc.documentType === type);
+
+    console.log("🔍 Existing Index:", existingIndex);
+
+    if (existingIndex !== -1) {
+      const updatedMeta = [...documentsMeta];
+      updatedMeta[existingIndex] = { documentType: type };
+      setDocumentsMeta(updatedMeta);
+
+      const updatedDocs = [...formData.documents];
+      updatedDocs[existingIndex] = file;
       setFormData(prev => ({
         ...prev,
-        [name]: updatedValue,
+        documents: updatedDocs
+      }));
+    } else {
+      setDocumentsMeta(prev => [
+        ...prev,
+        { documentType: type }
+      ]);
+
+      setFormData(prev => ({
+        ...prev,
+        documents: [...prev.documents, file]
       }));
     }
+  };
 
-    // Clear error for this field
-    setErrors(prev => ({ ...prev, [name]: "" }));
-
-    // Real-time validation for specific fields
-    if (name === 'email' && updatedValue) {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(updatedValue.trim())) {
-        setErrors(prev => ({ ...prev, email: "Invalid email format" }));
+  /* ======================
+     NAVIGATION
+  ====================== */
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      if (currentStep < totalSteps) {
+        setCurrentStep(currentStep + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-    }
-
-    if (name === 'phone' && updatedValue) {
-      const digitsOnly = updatedValue.replace(/\D/g, '');
-      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
-        setErrors(prev => ({ ...prev, phone: "Must be 10 digits" }));
-      }
-    }
-
-    if (name === 'fatherPhone' && updatedValue) {
-      const digitsOnly = updatedValue.replace(/\D/g, '');
-      if (digitsOnly.length > 0 && digitsOnly.length !== 10) {
-        setErrors(prev => ({ ...prev, fatherPhone: "Must be 10 digits" }));
-      }
-    }
-
-    if (name === 'age' && updatedValue) {
-      const ageNum = parseInt(updatedValue);
-      if (ageNum < 1 || ageNum > 150) {
-        setErrors(prev => ({ ...prev, age: "Age must be between 1-150" }));
-      }
-    }
-
-    // Validate photo file
-    if (name === 'photo' && files && files[0]) {
-      const file = files[0];
-
-      // Check file type
-      if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
-        setErrors(prev => ({ ...prev, photo: "Photo must be an image (JPEG, PNG, GIF, BMP, TIFF, WEBP)" }));
-      }
-
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, photo: "Photo size must be less than 5MB" }));
-      }
+    } else {
+      toast.error('Please fix all errors before proceeding');
     }
   };
 
-  // PHONE INPUT WITH FORMATTING for fatherPhone
-  const handleFatherPhoneChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '').substring(0, 10);
-
-    const rawDigits = value;
-
-    // Auto-format display
-    if (value.length > 6) {
-      value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-    } else if (value.length > 3) {
-      value = value.replace(/(\d{3})(\d{1,3})/, '$1-$2');
-    }
-
-    setFormData(prev => ({ ...prev, fatherPhone: rawDigits }));
-    setErrors(prev => ({ ...prev, fatherPhone: "" }));
-
-    if (rawDigits.length > 0 && rawDigits.length !== 10) {
-      setErrors(prev => ({ ...prev, fatherPhone: "Must be 10 digits" }));
-    } else if (rawDigits.length === 10 && !/^[6-9]/.test(rawDigits)) {
-      setErrors(prev => ({ ...prev, fatherPhone: "Should start with 6-9" }));
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  // PHONE INPUT WITH FORMATTING for phone
-  const handlePhoneChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '').substring(0, 10);
-
-    const rawDigits = value;
-
-    // Auto-format display
-    if (value.length > 6) {
-      value = value.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-    } else if (value.length > 3) {
-      value = value.replace(/(\d{3})(\d{1,3})/, '$1-$2');
-    }
-
-    setFormData(prev => ({ ...prev, phone: rawDigits }));
-    setErrors(prev => ({ ...prev, phone: "" }));
-
-    if (rawDigits.length > 0 && rawDigits.length !== 10) {
-      setErrors(prev => ({ ...prev, phone: "Must be 10 digits" }));
-    } else if (rawDigits.length === 10 && !/^[6-9]/.test(rawDigits)) {
-      setErrors(prev => ({ ...prev, phone: "Should start with 6-9" }));
-    }
+  const goToStep = (step) => {
+    setCurrentStep(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // VALIDATION
-  const validateForm = () => {
-    const newErrors = {};
-
-    // Client Name
-    if (!formData.clientName.trim()) {
-      newErrors.clientName = "Client name is required";
-    } else if (formData.clientName.trim().length < 2) {
-      newErrors.clientName = "Name must be at least 2 characters";
-    }
-
-    // Father Name
-    if (!formData.fatherName.trim()) {
-      newErrors.fatherName = "Father name is required";
-    } else if (formData.fatherName.trim().length < 2) {
-      newErrors.fatherName = "Father name must be at least 2 characters";
-    }
-
-    // Gender
-    if (!formData.gender) {
-      newErrors.gender = "Please select gender";
-    }
-
-    // Date of Birth
-    if (formData.dob) {
-      const dobDate = new Date(formData.dob);
-      const today = new Date();
-
-      if (dobDate > today) {
-        newErrors.dob = "Date of birth cannot be in the future";
-      }
-    }
-
-    // Age
-    if (!formData.age || Number(formData.age) < 1 || Number(formData.age) > 150) {
-      newErrors.age = "Please enter a valid age (1-150)";
-    }
-
-    // Phone
-    if (!formData.phone) {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
-      newErrors.phone = "Phone must be exactly 10 digits";
-    }
-
-    // Email
-    if (formData.email.trim()) {
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(formData.email.trim())) {
-        newErrors.email = "Please enter a valid email address";
-      }
-    }
-
-    // Address
-    if (formData.address.trim() && formData.address.trim().length < 4) {
-      newErrors.address = "Address should be more detailed";
-    }
-
-    // Nationality
-    if (!formData.Nationality.trim()) {
-      newErrors.Nationality = "Nationality is required";
-    }
-
-    // Family Members (optional but validate if provided)
-    if (formData.familyMembers !== "") {
-      const familyNum = parseInt(formData.familyMembers);
-      if (isNaN(familyNum) || familyNum < 0 || familyNum > 50) {
-        newErrors.familyMembers = "Please enter a reasonable number (0-50)";
-      }
-    }
-
-    // Occupation (optional)
-    // No validation for occupation as it's optional
-
-    // Photo
-    if (!formData.photo) {
-      newErrors.photo = "Photo is required";
-    } else if (formData.photo instanceof File) {
-      if (!SUPPORTED_IMAGE_TYPES.includes(formData.photo.type)) {
-        newErrors.photo = "Photo must be an image (JPEG, PNG, GIF, BMP, TIFF, WEBP)";
-      }
-
-      if (formData.photo.size > 5 * 1024 * 1024) {
-        newErrors.photo = "Photo size must be less than 5MB";
-      }
-    }
-
-    return newErrors;
-  };
-
-  // SUBMIT FORM
+  /* ======================
+     SUBMIT
+  ====================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = validateForm();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      const firstError = Object.values(newErrors)[0];
-      toast.error(`Please fix: ${firstError}`);
+    console.log("🚀 SUBMIT STARTED");
+    console.log("📌 Final FormData:", formData);
+    console.log("📌 Documents Meta:", documentsMeta);
+
+    // Validate all steps before submission
+    let allValid = true;
+    for (let i = 1; i <= 5; i++) {
+      if (!validateStep(i)) {
+        console.log("❌ Validation Failed at Step:", i);
+        allValid = false;
+        toast.error(`Please complete Step ${i} correctly`);
+        setCurrentStep(i);
+        return;
+      }
+    }
+
+    if (!allValid) {
       return;
     }
 
     try {
       setLoading(true);
-      toast.info("Saving client information...");
+      const data = new FormData();
 
-      const form = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== "") {
-          form.append(key, formData[key]);
-        }
+      Object.keys(formData).forEach(key => {
+        if (key !== "documents") data.append(key, formData[key]);
       });
 
-      const response = await axios.post(VITE_API_URL_FORM, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 30000,
+      data.append("documents", JSON.stringify(documentsMeta));
+      formData.documents.forEach(doc => data.append("documents", doc));
+
+      console.log("📤 Sending Data to Backend...");
+      console.log("📌 API URL:", API);
+
+      await axios.post(API, data, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
 
-      if (response.data.success) {
-        toast.success("✅ Client information saved successfully!");
 
-        // Reset form
-        setFormData({
-          clientName: "",
-          fatherName: "",
-          gender: "",
-          dob: "",
-          age: "",
-          phone: "",
-          email: "",
-          address: "",
-          Nationality: "",
-          familyMembers: "",
-          occupation: "",
-          photo: null,
-        });
+      console.log("✅ Form Submitted Successfully!");
 
-        setErrors({});
+      toast.success("Client Registered Successfully ✅");
 
-        // Clear file input
-        document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Failed to save client information ❌");
-    } finally {
+      // Reset form
+      setFormData({
+        clientName: "",
+        surname: "",
+        contact: "",
+        email: "",
+        gender: "",
+        dob: "",
+        age: "",
+        nationality: "",
+        maritalStatus: "",
+        education: "",
+        occupation: "",
+        address: "",
+        familyMembersCount: 0,
+        fatherName: "",
+        fatherSurname: "",
+        fatherPhone: "",
+        fatherEmail: "",
+        motherName: "",
+        motherSurname: "",
+        motherPhone: "",
+        motherEmail: "",
+        spouseName: "",
+        spouseSurname: "",
+        spousePhone: "",
+        spouseEmail: "",
+        aadhaarCardNo: "",
+        panCardNo: "",
+        passportNo: "",
+        drivingLicenseNo: "",
+        voterCardNo: "",
+        photo: null,
+        documents: [],
+      });
+      setDocumentsMeta([]);
+      setErrors({});
+      setCurrentStep(1);
+
+    } catch (err) {
+
+      console.log("❌ Submission Failed:", err);
+      toast.error(err.response?.data?.message || "Error ❌");
+    }
+    finally {
       setLoading(false);
     }
   };
 
-  // Format phone for display
-  const displayPhone = formData.phone ?
-    formData.phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') :
-    '';
+  /* ======================
+     RENDER STEP CONTENT
+  ====================== */
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">Basic Information</h3>
 
-  const displayFatherPhone = formData.fatherPhone ?
-    formData.fatherPhone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3') :
-    '';
+            <div className="form-row">
+              <div className="form-group">
+                <label>Client Name</label>
+                <input
+                  name="clientName"
+                  placeholder="Enter client name"
+                  value={formData.clientName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.clientName ? 'error' : ''}
+                  required
+                />
+                {errors.clientName && <span className="error-message">{errors.clientName}</span>}
+              </div>
 
+              <div className="form-group">
+                <label>Surname</label>
+                <input
+                  name="surname"
+                  placeholder="Enter surname"
+                  value={formData.surname}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.surname ? 'error' : ''}
+                  required
+                />
+                {errors.surname && <span className="error-message">{errors.surname}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Contact Number</label>
+                <input
+                  name="contact"
+                  placeholder="Enter 10-digit contact number"
+                  value={formData.contact}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.contact ? 'error' : ''}
+                  maxLength="10"
+                  required
+                />
+                {errors.contact && <span className="error-message">{errors.contact}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="optional">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Enter email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.email ? 'error' : ''}
+                />
+                {errors.email && <span className="error-message">{errors.email}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Date of Birth</label>
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.dob ? 'error' : ''}
+                  max={new Date().toISOString().split('T')[0]}
+                  required
+                />
+                {errors.dob && <span className="error-message">{errors.dob}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Age </label>
+                <input
+
+                  placeholder="Enter Age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.age ? 'error' : ''}
+                  min="1"
+                  max="120"
+                  readOnly
+                  required
+                />
+                {errors.age && <span className="error-message">{errors.age}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Gender </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.gender ? 'error' : ''}
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.gender && <span className="error-message">{errors.gender}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Marital Status </label>
+                <select
+                  name="maritalStatus"
+                  value={formData.maritalStatus}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.maritalStatus ? 'error' : ''}
+                  required
+                >
+                  <option value="">Select Status</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Separated">Separated</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Widowed">Widowed</option>
+
+                </select>
+                {errors.maritalStatus && <span className="error-message">{errors.maritalStatus}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="optional">Education</label>
+                <input
+                  name="education"
+                  placeholder="Enter education"
+                  value={formData.education}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.education ? 'error' : ''}
+                />
+                {errors.education && <span className="error-message">{errors.education}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="optional">Occupation</label>
+                <input
+                  name="occupation"
+                  placeholder="Enter occupation"
+                  value={formData.occupation}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Nationality </label>
+                <input
+                  name="nationality"
+                  placeholder="Enter nationality"
+                  value={formData.nationality}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.nationality ? 'error' : ''}
+                  required
+                />
+                {errors.nationality && <span className="error-message">{errors.nationality}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="optional">Family Members</label>
+                <input
+                  name="familyMembersCount"
+                  type="number"
+                  placeholder="Number of family members"
+                  value={formData.familyMembersCount}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.familyMembersCount ? 'error' : ''}
+                  min="0"
+                  max="50"
+                />
+                {errors.familyMembersCount && <span className="error-message">{errors.familyMembersCount}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group full-width">
+                <label className="optional">Address</label>
+                <textarea
+                  name="address"
+                  placeholder="Enter complete address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  rows="3"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">Document Numbers</h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Aadhaar Card No </label>
+                <input
+                  name="aadhaarCardNo"
+                  placeholder="Enter 12-digit Aadhaar number"
+                  value={formData.aadhaarCardNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.aadhaarCardNo ? 'error' : ''}
+                  maxLength="12"
+                  required
+                />
+                {errors.aadhaarCardNo && <span className="error-message">{errors.aadhaarCardNo}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>PAN Card No </label>
+                <input
+                  name="panCardNo"
+                  placeholder="Enter Pan (e.g., ABCDE1234F)"
+                  value={formData.panCardNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.panCardNo ? 'error' : ''}
+                  maxLength="10"
+                  // style={{ textTransform: 'uppercase' }}
+                  required
+                />
+                {errors.panCardNo && <span className="error-message">{errors.panCardNo}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Passport No</label>
+                <input
+                  name="passportNo"
+                  placeholder="Enter Passport Number"
+                  value={formData.passportNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.passportNo ? 'error' : ''}
+                  maxLength="9"
+                  // style={{ textTransform: 'uppercase' }}
+                  required
+                />
+                {errors.passportNo && <span className="error-message">{errors.passportNo}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="optional">Driving License No</label>
+                <input
+                  name="drivingLicenseNo"
+                  placeholder="Enter License (e.g., MH1234567890123)"
+                  value={formData.drivingLicenseNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.drivingLicenseNo ? 'error' : ''}
+                  maxLength="15"
+                // style={{ textTransform: 'uppercase' }}
+                />
+                {errors.drivingLicenseNo && <span className="error-message">{errors.drivingLicenseNo}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label className="optional">Voter Card No</label>
+                <input
+                  name="voterCardNo"
+                  placeholder="Enter Voter Card (e.g., ABC1234567)"
+                  value={formData.voterCardNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.voterCardNo ? 'error' : ''}
+                  maxLength="10"
+                // style={{ textTransform: 'uppercase' }}
+                />
+                {errors.voterCardNo && <span className="error-message">{errors.voterCardNo}</span>}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">Father Details</h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Father Name</label>
+                <input
+                  name="fatherName"
+                  placeholder="Enter father's name"
+                  value={formData.fatherName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.fatherName ? 'error' : ''}
+                  required
+                />
+                {errors.fatherName && <span className="error-message">{errors.fatherName}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Father Surname </label>
+                <input
+                  name="fatherSurname"
+                  placeholder="Enter father's surname"
+                  value={formData.fatherSurname}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.fatherSurname ? 'error' : ''}
+                  required
+                />
+                {errors.fatherSurname && <span className="error-message">{errors.fatherSurname}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Father Phone </label>
+                <input
+                  name="fatherPhone"
+                  placeholder="Enter 10-digit phone number"
+                  value={formData.fatherPhone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.fatherPhone ? 'error' : ''}
+                  maxLength="10"
+                  required
+                />
+                {errors.fatherPhone && <span className="error-message">{errors.fatherPhone}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Father Email</label>
+                <input
+                  name="fatherEmail"
+                  type="email"
+                  placeholder="Enter father's email"
+                  value={formData.fatherEmail}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.fatherEmail ? 'error' : ''}
+                  required
+                />
+                {errors.fatherEmail && <span className="error-message">{errors.fatherEmail}</span>}
+              </div>
+            </div>
+
+            <h3 className="section-title" style={{ marginTop: '30px' }}>Mother Details</h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Mother Name</label>
+                <input
+                  name="motherName"
+                  placeholder="Enter mother's name"
+                  value={formData.motherName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.motherName ? 'error' : ''}
+                  required
+                />
+                {errors.motherName && <span className="error-message">{errors.motherName}</span>}
+              </div>
+
+              <div className="form-group">
+                <label>Mother Surname</label>
+                <input
+                  name="motherSurname"
+                  placeholder="Enter mother's surname"
+                  value={formData.motherSurname}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.motherSurname ? 'error' : ''}
+                  required
+                />
+                {errors.motherSurname && <span className="error-message">{errors.motherSurname}</span>}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Mother Phone</label>
+                <input
+                  name="motherPhone"
+                  placeholder="Enter 10-digit phone number"
+                  value={formData.motherPhone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.motherPhone ? 'error' : ''}
+                  maxLength="10"
+                  required
+                />
+                {errors.motherPhone && <span className="error-message">{errors.motherPhone}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="optional">Mother Email</label>
+                <input
+                  name="motherEmail"
+                  type="email"
+                  placeholder="Enter mother's email"
+                  value={formData.motherEmail}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.motherEmail ? 'error' : ''}
+                />
+                {errors.motherEmail && <span className="error-message">{errors.motherEmail}</span>}
+              </div>
+            </div>
+
+            {formData.maritalStatus === "Married" && (
+              <>
+                <h3 className="section-title" style={{ marginTop: '30px' }}>Spouse Details</h3>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="optional">Spouse Name</label>
+                    <input
+                      name="spouseName"
+                      placeholder="Enter spouse's name"
+                      value={formData.spouseName}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.spouseName ? 'error' : ''}
+                    />
+                    {errors.spouseName && <span className="error-message">{errors.spouseName}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="optional">Spouse Surname</label>
+                    <input
+                      name="spouseSurname"
+                      placeholder="Enter spouse's surname"
+                      value={formData.spouseSurname}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.spouseSurname ? 'error' : ''}
+                    />
+                    {errors.spouseSurname && <span className="error-message">{errors.spouseSurname}</span>}
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="optional">Spouse Phone</label>
+                    <input
+                      name="spousePhone"
+                      placeholder="Enter 10-digit phone number"
+                      value={formData.spousePhone}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.spousePhone ? 'error' : ''}
+                      maxLength="10"
+                    />
+                    {errors.spousePhone && <span className="error-message">{errors.spousePhone}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="optional">Spouse Email</label>
+                    <input
+                      name="spouseEmail"
+                      type="email"
+                      placeholder="Enter spouse's email"
+                      value={formData.spouseEmail}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.spouseEmail ? 'error' : ''}
+                    />
+                    {errors.spouseEmail && <span className="error-message">{errors.spouseEmail}</span>}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">📸 Live Document Capture</h3>
+            <p className="hint">Capture all documents using your camera (Front & Back where applicable)</p>
+
+            <div className="documents-grid">
+              {/* AADHAAR CARD - FRONT & BACK */}
+              <div className="document-capture-item">
+                {/* <label>Aadhaar Card - Front</label> */}
+                <CameraInput
+                  label="Aadhaar Front"
+                  setFile={(file) => handleDocumentCapture("AadhaarFront", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                {/* <label>Aadhaar Card - Back</label> */}
+                <CameraInput
+                  label="Aadhaar Back"
+                  setFile={(file) => handleDocumentCapture("AadhaarBack", file)}
+                />
+              </div>
+
+              {/* PAN CARD */}
+              <div className="document-capture-item">
+                {/* <label>PAN Card</label> */}
+                <CameraInput
+                  label="Capture PAN Card"
+                  setFile={(file) => handleDocumentCapture("PANCard", file)}
+                />
+              </div>
+
+              {/* PASSPORT - FRONT & BACK */}
+              <div className="document-capture-item">
+                {/* <label>Passport</label> */}
+                <CameraInput
+                  label="Capture Passport Front"
+                  setFile={(file) => handleDocumentCapture("PassportFront", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                <CameraInput
+                  label="Capture Passport Back"
+                  setFile={(file) => handleDocumentCapture("PassportBack", file)}
+                />
+              </div>
+
+              {/* DRIVING LICENSE - FRONT & BACK */}
+              <div className="document-capture-item">
+                {/* <label>Driving License - Front</label> */}
+                <CameraInput
+                  label="Capture License Front"
+                  setFile={(file) => handleDocumentCapture("DrivingLicenseFront", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                {/* <label>Driving License - Back</label> */}
+                <CameraInput
+                  label="Capture License Back"
+                  setFile={(file) => handleDocumentCapture("DrivingLicenseBack", file)}
+                />
+              </div>
+
+              {/* VOTER CARD - FRONT & BACK */}
+              <div className="document-capture-item">
+                {/* <label>Voter Card - Front</label> */}
+                <CameraInput
+                  label="Capture Voter Card Front"
+                  setFile={(file) => handleDocumentCapture("VoterCardFront", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                {/* <label>Voter Card - Back</label> */}
+                <CameraInput
+                  label="Capture Voter Card Back"
+                  setFile={(file) => handleDocumentCapture("VoterCardBack", file)}
+                />
+              </div>
+
+              {/* MARKSHEET - FRONT & BACK */}
+              <div className="document-capture-item">
+                {/* <label>Marksheet - Front</label> */}
+                <CameraInput
+                  label="Capture Marksheet Front"
+                  setFile={(file) => handleDocumentCapture("MarksheetFront", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                {/* <label>Marksheet - Back</label> */}
+                <CameraInput
+                  label="Capture Marksheet Back"
+                  setFile={(file) => handleDocumentCapture("MarksheetBack", file)}
+                />
+              </div>
+
+              {/* CV - MULTIPLE PAGES */}
+              <div className="document-capture-item">
+                {/* <label>CV - Page 1</label> */}
+                <CameraInput
+                  label="Capture CV Page 1"
+                  setFile={(file) => handleDocumentCapture("CVPage1", file)}
+                />
+              </div>
+
+              <div className="document-capture-item">
+                {/* <label>CV - Page 2</label> */}
+                <CameraInput
+                  label="Capture CV Page 2"
+                  setFile={(file) => handleDocumentCapture("CVPage2", file)}
+                />
+              </div>
+
+              {/* <div className="document-capture-item">
+                <label>CV - Page 3 (Optional)</label>
+                <CameraInput
+                  label="Capture CV Page 3"
+                  setFile={(file) => handleDocumentCapture("CVPage3", file)}
+                />
+              </div> */}
+
+              {/* <div className="document-capture-item">
+                <label>CV - Page 4 (Optional)</label>
+                <CameraInput
+                  label="Capture CV Page 4"
+                  setFile={(file) => handleDocumentCapture("CVPage4", file)}
+                />
+              </div> */}
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">👤 Live Photo</h3>
+            <p className="hint">Capture client's passport size photo (35mm x 45mm ratio)</p>
+            {errors.photo && <span className="error-message" style={{ display: 'block', marginBottom: '10px' }}>{errors.photo}</span>}
+            <div className="passport-photo-container">
+              <div className="passport-photo-frame">
+                <CameraInput
+                  label="Capture Photo"
+                  setFile={(file) => {
+                    setFormData(prev => ({ ...prev, photo: file }));
+                    setErrors(prev => ({ ...prev, photo: '' }));
+                  }}
+                  isPassportSize={true}
+                />
+              </div>
+              <div className="passport-guidelines">
+                <p>📏 <strong>Guidelines:</strong></p>
+                <ul>
+                  <li>Face should be clearly visible</li>
+                  <li>Plain white or light background</li>
+                  <li>No glasses or hat</li>
+                  <li>Neutral expression</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="form-section active">
+            <h3 className="section-title">📋 Review & Submit</h3>
+            <div className="review-section">
+
+              {/* BASIC INFORMATION */}
+              <div className="review-card">
+                <h4>Basic Information :</h4>
+                <div className="review-item">
+                  <span>Full Name:</span>
+                  <strong>{formData.clientName} {formData.surname}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Contact:</span>
+                  <strong>{formData.contact || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Email:</span>
+                  <strong>{formData.email || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Date of Birth:</span>
+                  <strong>{formData.dob || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Age:</span>
+                  <strong>{formData.age || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Gender:</span>
+                  <strong>{formData.gender || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Marital Status:</span>
+                  <strong>{formData.maritalStatus || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Nationality:</span>
+                  <strong>{formData.nationality || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Education:</span>
+                  <strong>{formData.education || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Occupation:</span>
+                  <strong>{formData.occupation || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Family Members:</span>
+                  <strong>{formData.familyMembersCount || 0}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Address:</span>
+                  <strong>{formData.address || 'N/A'}</strong>
+                </div>
+                <button className="edit-btn" onClick={() => goToStep(1)}>Edit</button>
+              </div>
+
+              {/* DOCUMENT NUMBERS */}
+              <div className="review-card">
+                <h4>Document Numbers</h4>
+                <div className="review-item">
+                  <span>Aadhaar Card No:</span>
+                  <strong>{formData.aadhaarCardNo || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>PAN Card No:</span>
+                  <strong>{formData.panCardNo || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Passport No:</span>
+                  <strong>{formData.passportNo || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Driving License No:</span>
+                  <strong>{formData.drivingLicenseNo || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Voter Card No:</span>
+                  <strong>{formData.voterCardNo || 'N/A'}</strong>
+                </div>
+                <button className="edit-btn" onClick={() => goToStep(2)}>Edit</button>
+              </div>
+
+              {/* FATHER DETAILS */}
+              <div className="review-card">
+                <h4>Father Details</h4>
+                <div className="review-item">
+                  <span>Name:</span>
+                  <strong>{formData.fatherName} {formData.fatherSurname}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Phone:</span>
+                  <strong>{formData.fatherPhone || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Email:</span>
+                  <strong>{formData.fatherEmail || 'N/A'}</strong>
+                </div>
+                <button className="edit-btn" onClick={() => goToStep(3)}>Edit</button>
+              </div>
+
+              {/* MOTHER DETAILS */}
+              <div className="review-card">
+                <h4>Mother Details</h4>
+                <div className="review-item">
+                  <span>Name:</span>
+                  <strong>{formData.motherName} {formData.motherSurname}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Phone:</span>
+                  <strong>{formData.motherPhone || 'N/A'}</strong>
+                </div>
+                <div className="review-item">
+                  <span>Email:</span>
+                  <strong>{formData.motherEmail || 'N/A'}</strong>
+                </div>
+                <button className="edit-btn" onClick={() => goToStep(3)}>Edit</button>
+              </div>
+
+              {/* SPOUSE DETAILS - Only show if married */}
+              {formData.maritalStatus === "Married" && (
+                <div className="review-card">
+                  <h4>Spouse Details</h4>
+                  <div className="review-item">
+                    <span>Name:</span>
+                    <strong>{formData.spouseName && formData.spouseSurname
+                      ? `${formData.spouseName} ${formData.spouseSurname}`
+                      : 'N/A'}</strong>
+                  </div>
+                  <div className="review-item">
+                    <span>Phone:</span>
+                    <strong>{formData.spousePhone || 'N/A'}</strong>
+                  </div>
+                  <div className="review-item">
+                    <span>Email:</span>
+                    <strong>{formData.spouseEmail || 'N/A'}</strong>
+                  </div>
+                  <button className="edit-btn" onClick={() => goToStep(3)}>Edit</button>
+                </div>
+              )}
+
+              {/* CAPTURED DOCUMENTS */}
+              <div className="review-card">
+                <h4>Captured Documents</h4>
+                <div className="review-item">
+                  <span>Total Documents:</span>
+                  <strong>{documentsMeta.length} file(s)</strong>
+                </div>
+                {documentsMeta.length > 0 && (
+                  <div className="document-list">
+                    {documentsMeta.map((doc, index) => (
+                      <div key={index} className="review-item">
+                        <span>• {doc.documentType}:</span>
+                        <strong>✓ Captured</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {documentsMeta.length === 0 && (
+                  <div className="review-item">
+                    <span>Status:</span>
+                    <strong className="warning-text">No documents captured</strong>
+                  </div>
+                )}
+                <button className="edit-btn" onClick={() => goToStep(4)}>Edit Documents</button>
+              </div>
+
+              {/* PASSPORT PHOTO */}
+              <div className="review-card">
+                <h4>Passport Size Photo</h4>
+                <div className="review-item">
+                  <span>Client Photo:</span>
+                  <strong className={formData.photo ? 'success-text' : 'warning-text'}>
+                    {formData.photo ? '✓ Captured' : '✗ Not Captured'}
+                  </strong>
+                </div>
+                {formData.photo && (
+                  <div className="review-item">
+                    <span>File Name:</span>
+                    <strong>{formData.photo.name}</strong>
+                  </div>
+                )}
+                <button className="edit-btn" onClick={() => goToStep(5)}>Edit Photo</button>
+              </div>
+
+              {/* SUBMISSION WARNING */}
+              {!formData.photo && (
+                <div className="review-card warning-card">
+                  <h4>⚠️ Incomplete Submission</h4>
+                  <div className="review-item">
+                    <span>Missing:</span>
+                    <strong>Passport Size Photo (Required)</strong>
+                  </div>
+                  <p className="hint">Please capture passport photo before submitting.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  /* ======================
+     UI
+  ====================== */
   return (
     <>
       <Navbar />
       <div className="form-wrapper">
         <div className="form-container">
           <div className="form-header">
-            <h2>📋 Client Information Form</h2>
-            <p>Please fill all required fields (*)</p>
+            <h2>📋 Client Registration Form</h2>
+            <p>Complete KYC with Live Document Capture</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="form" noValidate>
-            <div className="form-section">
-              <h3 className="section-title">Personal Information</h3>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Client Name *</label>
-                  <input
-                    type="text"
-                    name="clientName"
-                    placeholder="Enter client full name"
-                    value={formData.clientName}
-                    onChange={handleChange}
-                    className={errors.clientName ? "input-error" : ""}
-                  />
-                  {errors.clientName && <p className="error">{errors.clientName}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label>Father Name *</label>
-                  <input
-                    type="text"
-                    name="fatherName"
-                    placeholder="Enter father's name"
-                    value={formData.fatherName}
-                    onChange={handleChange}
-                    className={errors.fatherName ? "input-error" : ""}
-                  />
-                  {errors.fatherName && <p className="error">{errors.fatherName}</p>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Father Phone Number *</label>
-                  <input
-                    type="text"
-                    name="fatherPhone"
-                    placeholder="Enter father's phone number"
-                    value={displayFatherPhone}
-                    maxLength="12"
-                    onChange={handleFatherPhoneChange}
-                    className={errors.fatherPhone ? "input-error" : ""}
-                  />
-                  <small className="hint">Format: XXX-XXX-XXXX</small>
-                  {errors.fatherPhone && <p className="error">{errors.fatherPhone}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label>Relationship *</label>
-                  <select
-                    name="relationship"
-                    value={formData.relationship}
-                    onChange={handleChange}
-                    className={errors.relationship ? "input-error" : ""}
-                  >
-                    <option value="">Select relationship</option>
-                    <option value="Married">Married</option>
-                    <option value="Unmarried">Unmarried</option>
-                  </select>
-                  {errors.relationship && <p className="error">{errors.relationship}</p>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Gender *</label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className={errors.gender ? "input-error" : ""}
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors.gender && <p className="error">{errors.gender}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label>Date of Birth</label>
-                  <input
-                    type="date"
-                    name="dob"
-                    value={formData.dob}
-                    onChange={handleChange}
-                    max={new Date().toISOString().split('T')[0]}
-                    className={errors.dob ? "input-error" : ""}
-                  />
-                  {errors.dob && <p className="error">{errors.dob}</p>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Age *</label>
-                  <input
-                    type="number"
-                    name="age"
-                    min="1"
-                    max="150"
-                    placeholder="Enter age"
-                    value={formData.age}
-                    onChange={handleChange}
-                    className={errors.age ? "input-error" : ""}
-                  />
-                  <small className="hint">Will auto-calculate from DOB</small>
-                  {errors.age && <p className="error">{errors.age}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label className="optional">Family Members</label>
-                  <input
-                    type="number"
-                    name="familyMembers"
-                    min="0"
-                    max="50"
-                    placeholder="Number of family members"
-                    value={formData.familyMembers}
-                    onChange={handleChange}
-                    className={errors.familyMembers ? "input-error" : ""}
-                  />
-                  {errors.familyMembers && <p className="error">{errors.familyMembers}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label className="optional">Occupation</label>
-                  <input
-                    type="text"
-                    name="occupation"
-                    placeholder="Enter occupation (optional)"
-                    value={formData.occupation}
-                    onChange={handleChange}
-                    className={errors.occupation ? "input-error" : ""}
-                  />
-                  {errors.occupation && <p className="error">{errors.occupation}</p>}
-                </div>
-              </div>
-            </div>
-
-            <div className="form-section">
-              <h3 className="section-title">Contact Information</h3>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Phone Number *</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    placeholder="Enter 10 digit phone number"
-                    value={displayPhone}
-                    maxLength="12"
-                    onChange={handlePhoneChange}
-                    className={errors.phone ? "input-error" : ""}
-                  />
-                  <small className="hint">Format: XXX-XXX-XXXX</small>
-                  {errors.phone && <p className="error">{errors.phone}</p>}
-                </div>
-
-                <div className="form-group">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={errors.email ? "input-error" : ""}
-                  />
-                  {errors.email && <p className="error">{errors.email}</p>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group full-width">
-                  <label>Address *</label>
-                  <textarea
-                    name="address"
-                    placeholder="Enter complete address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    rows="3"
-                    className={errors.address ? "input-error" : ""}
-                  />
-                  {errors.address && <p className="error">{errors.address}</p>}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Nationality *</label>
-                  <input
-                    type="text"
-                    name="Nationality"
-                    placeholder="Enter Nationality"
-                    value={formData.Nationality}
-                    onChange={handleChange}
-                    className={errors.Nationality ? "input-error" : ""}
-                  />
-                  {errors.Nationality && <p className="error">{errors.Nationality}</p>}
-                </div>
-              </div>
-            </div>
-
-            <div className="form-section">
-              <h3 className="section-title">Photo</h3>
-
-              <CameraInput
-                label="Live Photo *"
-                name="photo"
-                error={errors.photo}
-                setFile={(file) => {
-                  setFormData(prev => ({ ...prev, photo: file }));
-                  setErrors(prev => ({ ...prev, photo: "" }));
-                }}
-                accept="image/*"
+          {/* PROGRESS BAR */}
+          <div className="progress-container">
+            <div className="progress-bar">
+              <div
+                className="progress-fill"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
               />
-              <small className="hint">Max 5MB, Supported: JPEG, PNG, GIF, BMP, TIFF, WEBP</small>
             </div>
+            <div className="progress-text">
+              Step {currentStep} of {totalSteps}
+            </div>
+          </div>
 
+          {/* STEP INDICATORS */}
+          <div className="step-indicators">
+            {stepTitles.map((title, index) => (
+              <div
+                key={index}
+                className={`step-indicator ${currentStep === index + 1 ? 'active' : ''} ${currentStep > index + 1 ? 'completed' : ''}`}
+                onClick={() => goToStep(index + 1)}
+              >
+                <div className="step-number">
+                  {currentStep > index + 1 ? '✓' : index + 1}
+                </div>
+                <div className="step-label">{title}</div>
+              </div>
+            ))}
+          </div>
+
+          <form onSubmit={handleSubmit} className="form">
+            {renderStepContent()}
+
+            {/* NAVIGATION BUTTONS */}
             <div className="form-actions">
-              <button
-                type="submit"
-                className={`submit-btn ${loading ? 'loading' : ''}`}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner"></span>
-                    Saving...
-                  </>
-                ) : (
-                  "✅ Save Client Information"
-                )}
-              </button>
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  className="prev-btn"
+                  onClick={prevStep}
+                >
+                  ← Previous
+                </button>
+              )}
 
-              <button
-                type="button"
-                className="clear-btn"
-                onClick={() => {
-                  setFormData({
-                    clientName: "",
-                    fatherName: "",
-                    gender: "",
-                    dob: "",
-                    age: "",
-                    phone: "",
-                    email: "",
-                    address: "",
-                    Nationality: "",
-                    familyMembers: "",
-                    occupation: "",
-                    photo: null,
-                  });
-                  setErrors({});
-                  toast.info("Form cleared");
-                }}
-              >
-                Clear Form
-              </button>
+              {currentStep < totalSteps && (
+                <button
+                  type="button"
+                  className="next-btn"
+                  onClick={nextStep}
+                >
+                  Next →
+                </button>
+              )}
+
+              {currentStep === totalSteps && (
+                <button
+                  type="submit"
+                  className="submit-btn"
+                  disabled={loading || !formData.photo}
+                >
+                  {loading ? (
+                    <>
+                      <div className="spinner"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit KYC ✓"
+                  )}
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -606,8 +1651,10 @@ const FormContent = () => {
   );
 };
 
-const Form = () => {
-  return <ProtectedRoute>{<FormContent />}</ProtectedRoute>;
-};
+const Form = () => (
+  <ProtectedRoute>
+    <FormContent />
+  </ProtectedRoute>
+);
 
 export default Form;

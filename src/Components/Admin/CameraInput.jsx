@@ -22,7 +22,7 @@ const CameraInput = ({ label, name, setFile, error }) => {
     fetch(imageSrc)
       .then((res) => res.blob())
       .then((blob) => {
-        const file = new File([blob], `${name}.jpg`, {
+        const file = new File([blob], `${name || 'photo'}.jpg`, {
           type: "image/jpeg",
         });
         setFile(file);
@@ -33,7 +33,7 @@ const CameraInput = ({ label, name, setFile, error }) => {
 
   return (
     <div className="form-group">
-      <label>{label} *</label>
+      <label>{label}</label>
 
       {!cameraOn && !preview && (
         <button type="button" onClick={startCamera} className="camera-btn">
@@ -51,17 +51,13 @@ const CameraInput = ({ label, name, setFile, error }) => {
           />
 
           <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-
             <button type="button" onClick={switchCamera} className="switch-btn">
               🔄 Switch Camera
             </button>
 
-            
             <button type="button" onClick={capture} className="capture-btn">
               📸 Capture
             </button>
-
-    
           </div>
         </>
       )}
@@ -79,6 +75,5 @@ const CameraInput = ({ label, name, setFile, error }) => {
     </div>
   );
 };
-
 
 export default CameraInput;

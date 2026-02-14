@@ -8,12 +8,13 @@ const ClientTable = ({ clients, onEdit, onDelete, formatDate }) => {
           <tr>
             <th>#</th>
             <th>Client Name</th>
-            <th>Father Name</th>
+            <th>Surname</th>
+            <th>Contact</th>
             <th>Email</th>
-            <th>Phone</th>
             <th>Nationality</th>
             <th>Gender</th>
             <th>Age</th>
+            <th>Marital Status</th>
             <th>Submitted</th>
             <th>Actions</th>
           </tr>
@@ -23,13 +24,14 @@ const ClientTable = ({ clients, onEdit, onDelete, formatDate }) => {
           {clients.map((client, index) => (
             <tr key={client._id}>
               <td>{index + 1}</td>
-              <td>{client.clientName}</td>
-              <td>{client.fatherName}</td>
-              <td>{client.email}</td>
-              <td>{client.phone}</td>
-              <td>{client.Nationality}</td>
-              <td>{client.gender}</td>
-              <td>{client.age}</td>
+              <td>{client.clientName || "N/A"}</td>
+              <td>{client.surname || "N/A"}</td>
+              <td>{client.contact || "N/A"}</td>
+              <td>{client.email || "N/A"}</td>
+              <td>{client.nationality || "N/A"}</td>
+              <td>{client.gender || "N/A"}</td>
+              <td>{client.age || "N/A"}</td>
+              <td>{client.maritalStatus || "N/A"}</td>
               <td>{formatDate(client.createdAt)}</td>
               
               <td>
@@ -38,13 +40,13 @@ const ClientTable = ({ clients, onEdit, onDelete, formatDate }) => {
                     className="btn btn-edit"
                     onClick={() => onEdit(client)}
                   >
-                    👁️ View
+                    View
                   </button>
                   <button
                     className="btn btn-delete"
                     onClick={() => onDelete(client._id)}
                   >
-                    🗑️ Delete
+                    Delete
                   </button>
                 </div>
               </td>
@@ -55,7 +57,7 @@ const ClientTable = ({ clients, onEdit, onDelete, formatDate }) => {
 
       {clients.length === 0 && (
         <div className="no-results">
-          <p>❌ No clients found</p>
+          <p>No clients found</p>
         </div>
       )}
     </div>

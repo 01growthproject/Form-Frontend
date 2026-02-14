@@ -5,7 +5,7 @@ const ClientFilter = ({ searchTerm, onSearchChange, totalClients, onRefresh, loa
     <div className="admin-toolbar">
       <input
         type="text"
-        placeholder="🔍 Search by name / phone / nationality / email"
+        placeholder="Search by name, contact, email, or nationality"
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
         className="search-input"
@@ -15,11 +15,11 @@ const ClientFilter = ({ searchTerm, onSearchChange, totalClients, onRefresh, loa
 
       <button
         onClick={onRefresh}
-        className="btn-action edit"
+        className="btn-action secondary"
         style={{ marginLeft: "auto" }}
         disabled={loading}
       >
-        🔄 Refresh
+        Refresh
       </button>
     </div>
   );
