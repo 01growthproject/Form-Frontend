@@ -53,15 +53,12 @@ const ClientDetail = () => {
     }
   };
 
-  // ✅ ENHANCED PDF Download Function with All Documents (Multi-Page)
-  // ✅ ENHANCED PDF Download Function with All Documents (Multi-Page)
   const handleDownloadPDF = async () => {
     try {
       toast.info("📄 Generating comprehensive PDF...");
       const doc = new jsPDF("p", "mm", "a4");
       let currentPage = 1;
 
-      // Helper function to add image to PDF with error handling
       const addImageToPDF = async (imageUrl, x, y, width, height) => {
         try {
           const response = await fetch(imageUrl, { mode: 'cors' });
@@ -86,7 +83,7 @@ const ClientDetail = () => {
         }
       };
 
-      // ===== PAGE 1: HEADER & BASIC INFO =====
+      // PAGE 1: HEADER & BASIC INFO
       doc.setFillColor(102, 126, 234);
       doc.rect(0, 0, 210, 30, "F");
 
@@ -173,6 +170,19 @@ const ClientDetail = () => {
         addRow("Address:", client.address);
       }
 
+      // ✅ GOVERNMENT SERVANT INFORMATION
+      addSection("GOVERNMENT SERVANT INFORMATION");
+      addRow("Family Member in Govt Service:", client.hasGovtServant || "N/A");
+
+      if (client.hasGovtServant === "Yes") {
+        addRow("Relation:", client.govtServantRelation || "N/A");
+        addRow("Name:", client.govtServantName || "N/A");
+        addRow("Work Type:", client.govtServantWorkType || "N/A");
+        addRow("Designation:", client.govtServantDesignation || "N/A");
+        // addRow("Department:", client.govtServantDepartment || "N/A");
+      }
+
+
       // DOCUMENT NUMBERS
       addSection("DOCUMENT NUMBERS");
       addRow("Aadhaar Card No:", client.aadhaarCardNo || "N/A");
@@ -180,6 +190,11 @@ const ClientDetail = () => {
       addRow("Passport No:", client.passportNo || "N/A");
       addRow("Driving License No:", client.drivingLicenseNo || "N/A");
       addRow("Voter Card No:", client.voterCardNo || "N/A");
+
+      doc.addPage();
+      currentPage++;
+      y = 20;
+
 
       // FAMILY DETAILS - FATHER
       addSection("FATHER DETAILS");
@@ -201,7 +216,7 @@ const ClientDetail = () => {
         addRow("Spouse Email:", client.spouseEmail || "N/A");
       }
 
-      // ===== PAGES 2-N: CAPTURED DOCUMENTS (GROUPED BY TYPE) =====
+      // CAPTURED DOCUMENTS (Multi-Page)
       if (client.documents && client.documents.length > 0) {
         const documentGroups = [
           {
@@ -245,8 +260,8 @@ const ClientDetail = () => {
         const cardWidth = 174;
         const imageWidth = 170;
         const imageHeight = 94;
-        const titleYSlots = [38, 168]; // For 2 docs per page
-        const singleDocTitleY = 90; // For 1 doc per page
+        const titleYSlots = [38, 168];
+        const singleDocTitleY = 90;
         const singleDocImageY = 100;
 
         const toReadableDocTitle = (value) => {
@@ -257,21 +272,16 @@ const ClientDetail = () => {
             .trim();
         };
 
-        // Process each document group
         for (const group of documentGroups) {
-          // Find documents matching this group
           const groupDocs = client.documents.filter(doc =>
             group.types.includes(doc.documentType)
           );
 
-          // Skip if no documents in this group
           if (groupDocs.length === 0) continue;
 
-          // Add new page for this group
           doc.addPage();
           currentPage++;
 
-          // Page header with group title
           doc.setFillColor(51, 65, 85);
           doc.rect(0, 0, 210, 24, "F");
           doc.setFontSize(15);
@@ -279,7 +289,6 @@ const ClientDetail = () => {
           doc.setFont("helvetica", "bold");
           doc.text(group.title, 105, 15, { align: "center" });
 
-          // Add documents to page
           for (let i = 0; i < groupDocs.length; i++) {
             const document = groupDocs[i];
 
@@ -287,22 +296,18 @@ const ClientDetail = () => {
             const imageX = cardX + 2;
 
             if (group.perPage === 1) {
-              // Single document - centered
               titleY = singleDocTitleY;
               imageY = singleDocImageY;
             } else {
-              // Multiple documents (2 per page)
               titleY = titleYSlots[i];
               imageY = titleY + 10;
             }
 
-            // Document title
             doc.setFontSize(12);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(30, 41, 59);
             doc.text(toReadableDocTitle(document.documentType), cardX, titleY);
 
-            // Document image
             if (document.imageUrl) {
               const success = await addImageToPDF(
                 document.imageUrl,
@@ -336,7 +341,7 @@ const ClientDetail = () => {
         }
       }
 
-      // ===== FOOTER ON EACH PAGE =====
+      // FOOTER ON EACH PAGE
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
@@ -676,6 +681,42 @@ const ClientDetail = () => {
                     </div>
                   </div>
 
+                  {/* ✅ GOVERNMENT SERVANT INFORMATION */}
+                  <div className="info-section">
+                    <h3 className="section-title">🏛️ Government Servant Information</h3>
+                    <div className="info-grid">
+                      <div className="info-item">
+                        <label>Family Member in Govt Service</label>
+                        <p>{client.hasGovtServant || "N/A"}</p>
+                      </div>
+
+                      {client.hasGovtServant === "Yes" && (
+                        <>
+                          <div className="info-item">
+                            <label>Relation</label>
+                            <p>{client.govtServantRelation || "N/A"}</p>
+                          </div>
+                          <div className="info-item">
+                            <label>Name</label>
+                            <p>{client.govtServantName || "N/A"}</p>
+                          </div>
+                          <div className="info-item">
+                            <label>Work Type</label>
+                            <p>{client.govtServantWorkType || "N/A"}</p>
+                          </div>
+                          <div className="info-item">
+                            <label>Designation</label>
+                            <p>{client.govtServantDesignation || "N/A"}</p>
+                          </div>
+                          {/* <div className="info-item">
+                            <label>Department</label>
+                            <p>{client.govtServantDepartment || "N/A"}</p>
+                          </div> */}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
                   {/* DOCUMENT NUMBERS */}
                   <div className="info-section">
                     <h3 className="section-title">🆔 Document Numbers</h3>
@@ -903,6 +944,94 @@ const ClientDetail = () => {
                       />
                     </div>
 
+                    {/* ✅ GOVERNMENT SERVANT INFORMATION - EDIT MODE */}
+                    <h3 className="section-title" style={{ gridColumn: '1 / -1', marginTop: '20px' }}>🏛️ Government Servant Information</h3>
+
+                    <div className="form-group">
+                      <label>Family Member in Govt Service</label>
+                      <select
+                        value={editData.hasGovtServant || "No"}
+                        onChange={(e) => handleInputChange("hasGovtServant", e.target.value)}
+                      >
+                        <option value="">Select Option</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+
+                    {editData.hasGovtServant === "Yes" && (
+                      <>
+                        <div className="form-group">
+                          <label>Relation</label>
+                          <select
+                            value={editData.govtServantRelation || ""}
+                            onChange={(e) => handleInputChange("govtServantRelation", e.target.value)}
+                          >
+                            <option value="">Select Relation</option>
+                            <option value="Father">Father</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Spouse">Spouse (Husband/Wife)</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Sister">Sister</option>
+                            <option value="Son">Son</option>
+                            <option value="Daughter">Daughter</option>
+                            <option value="Uncle">Uncle</option>
+                            <option value="Aunt">Aunt</option>
+                            <option value="Grandfather">Grandfather</option>
+                            <option value="Grandmother">Grandmother</option>
+                            <option value="Other">Other Relative</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Name</label>
+                          <input
+                            type="text"
+                            value={editData.govtServantName || ""}
+                            onChange={(e) => handleInputChange("govtServantName", e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Work Type</label>
+                          <select
+                            value={editData.govtServantWorkType || ""}
+                            onChange={(e) => handleInputChange("govtServantWorkType", e.target.value)}
+                          >
+                            <option value="">Select Work Type</option>
+                            <option value="Central Government">Central Government</option>
+                            <option value="State Government">State Government</option>
+                            <option value="PSU (Public Sector Undertaking)">PSU (Public Sector Undertaking)</option>
+                            <option value="Indian Army">Indian Army</option>
+                            <option value="Indian Navy">Indian Navy</option>
+                            <option value="Indian Air Force">Indian Air Force</option>
+                            <option value="Police Department">Police Department</option>
+                            <option value="Railway">Railway</option>
+                            <option value="Banking Sector">Banking Sector (Government)</option>
+                            <option value="Teaching (Government School/College)">Teaching (Government School/College)</option>
+                            <option value="Medical (Government Hospital)">Medical (Government Hospital)</option>
+                            <option value="Judiciary">Judiciary</option>
+                            <option value="Municipal Corporation">Municipal Corporation</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Designation</label>
+                          <input
+                            type="text"
+                            value={editData.govtServantDesignation || ""}
+                            onChange={(e) => handleInputChange("govtServantDesignation", e.target.value)}
+                          />
+                        </div>
+                        {/* <div className="form-group">
+                          <label>Department</label>
+                          <input
+                            type="text"
+                            value={editData.govtServantDepartment || ""}
+                            onChange={(e) => handleInputChange("govtServantDepartment", e.target.value)}
+                          />
+                        </div> */}
+                      </>
+                    )}
+
                     {/* Document Numbers */}
                     <h3 className="section-title" style={{ gridColumn: '1 / -1', marginTop: '20px' }}>Document Numbers</h3>
 
@@ -1057,7 +1186,6 @@ const ClientDetail = () => {
                       </>
                     )}
                   </div>
-
                 </>
               )}
             </div>
@@ -1155,13 +1283,9 @@ const ClientDetail = () => {
                   </div>
                 )}
                 {!isEditing && client.documents && client.documents.length > 0 ? (
-
                   <div className="documents-grid-view">
-
                     {client.documents.map((doc, index) => (
-
                       <div key={index} className="document-item">
-
                         <div className="document-label">
                           {doc.documentType || `Document ${index + 1}`}
                         </div>

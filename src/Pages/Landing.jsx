@@ -96,8 +96,8 @@ const Landing = () => {
                 <div className="card-badge">Live</div>
               </div>
               <div className="visual-content">
-                <h3>Client Management Portal</h3>
-                <p>Efficiently manage student registrations, track applications, and streamline your workflow</p>
+                <h3>Client Management System  </h3>
+                <p>Efficiently manage client registrations, Track applications, Store client information</p>
                 <div className="card-features">
                   <div className="feature-item">
                     <span className="feature-check">✓</span>

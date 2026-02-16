@@ -280,10 +280,10 @@
   gap: 5px;
 }
 
-.form-group label::after {
+/* .form-group label::after {
   content: ' *';
   color: #ff6b6b;
-}
+} */
 
 .form-group label.optional::after {
   content: '';

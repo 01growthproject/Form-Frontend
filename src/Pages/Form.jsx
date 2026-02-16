@@ -26,6 +26,14 @@ const FormContent = () => {
     address: "",
     familyMembersCount: 0,
 
+    /* GOVERNMENT SERVANT INFO */
+    hasGovtServant: "No",
+    govtServantRelation: "",
+    govtServantName: "",
+    govtServantWorkType: "",
+    govtServantDesignation: "",
+    govtServantDepartment: "",
+
     /* FATHER */
     fatherName: "",
     fatherSurname: "",
@@ -227,6 +235,43 @@ const FormContent = () => {
         }
         break;
 
+      // Government Servant Fields
+      case 'hasGovtServant':
+        if (!value) {
+          error = 'Please select an option';
+        }
+        break;
+
+      case 'govtServantRelation':
+        if (value && !value.trim()) {
+          error = 'Please select relation';
+        }
+        break;
+
+      case 'govtServantName':
+        if (value && !isValidName(value)) {
+          error = 'Only letters and spaces allowed (min 2 characters)';
+        }
+        break;
+
+      case 'govtServantWorkType':
+        if (value && !value.trim()) {
+          error = 'Please select work type';
+        }
+        break;
+
+      case 'govtServantDesignation':
+        if (value && value.trim().length < 2) {
+          error = 'Enter valid designation (min 2 characters)';
+        }
+        break;
+
+      case 'govtServantDepartment':
+        if (value && value.trim().length < 2) {
+          error = 'Enter valid department name (min 2 characters)';
+        }
+        break;
+
       // Document Numbers
       case 'aadhaarCardNo':
         if (!value.trim()) {
@@ -376,7 +421,7 @@ const FormContent = () => {
       case 1: // Basic Information
         const basicFields = [
           'clientName', 'surname', 'contact', 'dob', 'age',
-          'gender', 'maritalStatus', 'nationality'
+          'gender', 'maritalStatus', 'nationality', 'hasGovtServant'
         ];
 
         basicFields.forEach(field => {
@@ -386,6 +431,48 @@ const FormContent = () => {
             isValid = false;
           }
         });
+
+        // Validate govt servant details if "Yes" is selected
+        if (formData.hasGovtServant === "Yes") {
+          // Required fields when "Yes" is selected
+          if (!formData.govtServantRelation || !formData.govtServantRelation.trim()) {
+            newErrors.govtServantRelation = 'Relation is required';
+            isValid = false;
+          }
+
+          if (!formData.govtServantName || !formData.govtServantName.trim()) {
+            newErrors.govtServantName = 'Name is required';
+            isValid = false;
+          } else {
+            const nameError = validateField('govtServantName', formData.govtServantName);
+            if (nameError) {
+              newErrors.govtServantName = nameError;
+              isValid = false;
+            }
+          }
+
+          if (!formData.govtServantWorkType || !formData.govtServantWorkType.trim()) {
+            newErrors.govtServantWorkType = 'Work type is required';
+            isValid = false;
+          }
+
+          // Optional fields - validate only if provided
+          if (formData.govtServantDesignation) {
+            const error = validateField('govtServantDesignation', formData.govtServantDesignation);
+            if (error) {
+              newErrors.govtServantDesignation = error;
+              isValid = false;
+            }
+          }
+
+          if (formData.govtServantDepartment) {
+            const error = validateField('govtServantDepartment', formData.govtServantDepartment);
+            if (error) {
+              newErrors.govtServantDepartment = error;
+              isValid = false;
+            }
+          }
+        }
 
         // Validate optional email if provided
         if (formData.email) {
@@ -648,6 +735,12 @@ const FormContent = () => {
         occupation: "",
         address: "",
         familyMembersCount: 0,
+        hasGovtServant: "No",
+        govtServantRelation: "",
+        govtServantName: "",
+        govtServantWorkType: "",
+        govtServantDesignation: "",
+        govtServantDepartment: "",
         fatherName: "",
         fatherSurname: "",
         fatherPhone: "",
@@ -772,7 +865,6 @@ const FormContent = () => {
               <div className="form-group">
                 <label>Age </label>
                 <input
-
                   placeholder="Enter Age"
                   value={formData.age}
                   onChange={handleChange}
@@ -822,7 +914,6 @@ const FormContent = () => {
                   <option value="Separated">Separated</option>
                   <option value="Divorced">Divorced</option>
                   <option value="Widowed">Widowed</option>
-
                 </select>
                 {errors.maritalStatus && <span className="error-message">{errors.maritalStatus}</span>}
               </div>
@@ -897,6 +988,136 @@ const FormContent = () => {
                 />
               </div>
             </div>
+
+            {/* GOVERNMENT SERVANT SECTION */}
+            <h3 className="section-title" style={{ marginTop: '30px', borderTop: '2px solid #e0e0e0', paddingTop: '20px' }}>
+              🏛️ Government Servant Information
+            </h3>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Any Family Member is Government Servant?</label>
+                <select
+                  name="hasGovtServant"
+                  value={formData.hasGovtServant}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={errors.hasGovtServant ? 'error' : ''}
+                  required
+                >
+                  <option value="">Select Option</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                {errors.hasGovtServant && <span className="error-message">{errors.hasGovtServant}</span>}
+              </div>
+            </div>
+
+            {formData.hasGovtServant === "Yes" && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Relation with You</label>
+                    <select
+                      name="govtServantRelation"
+                      value={formData.govtServantRelation}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.govtServantRelation ? 'error' : ''}
+                      required
+                    >
+                      <option value="">Select Relation</option>
+                      <option value="Father">Father</option>
+                      <option value="Mother">Mother</option>
+                      <option value="Spouse">Spouse (Husband/Wife)</option>
+                      <option value="Brother">Brother</option>
+                      <option value="Sister">Sister</option>
+                      <option value="Son">Son</option>
+                      <option value="Daughter">Daughter</option>
+                      <option value="Uncle">Uncle</option>
+                      <option value="Aunt">Aunt</option>
+                      <option value="Grandfather">Grandfather</option>
+                      <option value="Grandmother">Grandmother</option>
+                      <option value="Other">Other Relative</option>
+                    </select>
+                    {errors.govtServantRelation && <span className="error-message">{errors.govtServantRelation}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Name of Government Servant</label>
+                    <input
+                      name="govtServantName"
+                      placeholder="Enter full name"
+                      value={formData.govtServantName}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.govtServantName ? 'error' : ''}
+                      required
+                    />
+                    {errors.govtServantName && <span className="error-message">{errors.govtServantName}</span>}
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Work Type / Organization</label>
+                    <select
+                      name="govtServantWorkType"
+                      value={formData.govtServantWorkType}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.govtServantWorkType ? 'error' : ''}
+                      required
+                    >
+                      <option value="">Select Work Type</option>
+                      <option value="Central Government">Central Government</option>
+                      <option value="State Government">State Government</option>
+                      <option value="PSU (Public Sector Undertaking)">PSU (Public Sector Undertaking)</option>
+                      <option value="Indian Army">Indian Army</option>
+                      <option value="Indian Navy">Indian Navy</option>
+                      <option value="Indian Air Force">Indian Air Force</option>
+                      <option value="Police Department">Police Department</option>
+                      <option value="Railway">Railway</option>
+                      <option value="Banking Sector">Banking Sector (Government)</option>
+                      <option value="Teaching (Government School/College)">Teaching (Government School/College)</option>
+                      <option value="Medical (Government Hospital)">Medical (Government Hospital)</option>
+                      <option value="Judiciary">Judiciary</option>
+                      <option value="Municipal Corporation">Municipal Corporation</option>
+                      <option value="Other Government Department">Other Government Department</option>
+                    </select>
+                    {errors.govtServantWorkType && <span className="error-message">{errors.govtServantWorkType}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="optional">Designation / Post</label>
+                    <input
+                      name="govtServantDesignation"
+                      placeholder="e.g., Deputy Collector, Teacher, Inspector"
+                      value={formData.govtServantDesignation}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.govtServantDesignation ? 'error' : ''}
+                    />
+                    {errors.govtServantDesignation && <span className="error-message">{errors.govtServantDesignation}</span>}
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    {/* <label className="optional">Department / Office Name</label>
+                    <input
+                      name="govtServantDepartment"
+                      placeholder="e.g., Education Department, Police HQ, Railway Board"
+                      value={formData.govtServantDepartment}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      className={errors.govtServantDepartment ? 'error' : ''}
+                    /> */}
+                    {errors.govtServantDepartment && <span className="error-message">{errors.govtServantDepartment}</span>}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         );
 
@@ -931,7 +1152,6 @@ const FormContent = () => {
                   onBlur={handleBlur}
                   className={errors.panCardNo ? 'error' : ''}
                   maxLength="10"
-                  // style={{ textTransform: 'uppercase' }}
                   required
                 />
                 {errors.panCardNo && <span className="error-message">{errors.panCardNo}</span>}
@@ -949,7 +1169,6 @@ const FormContent = () => {
                   onBlur={handleBlur}
                   className={errors.passportNo ? 'error' : ''}
                   maxLength="9"
-                  // style={{ textTransform: 'uppercase' }}
                   required
                 />
                 {errors.passportNo && <span className="error-message">{errors.passportNo}</span>}
@@ -965,7 +1184,6 @@ const FormContent = () => {
                   onBlur={handleBlur}
                   className={errors.drivingLicenseNo ? 'error' : ''}
                   maxLength="15"
-                // style={{ textTransform: 'uppercase' }}
                 />
                 {errors.drivingLicenseNo && <span className="error-message">{errors.drivingLicenseNo}</span>}
               </div>
@@ -982,7 +1200,6 @@ const FormContent = () => {
                   onBlur={handleBlur}
                   className={errors.voterCardNo ? 'error' : ''}
                   maxLength="10"
-                // style={{ textTransform: 'uppercase' }}
                 />
                 {errors.voterCardNo && <span className="error-message">{errors.voterCardNo}</span>}
               </div>
@@ -1193,51 +1410,43 @@ const FormContent = () => {
             <p className="hint">Capture all documents using your camera (Front & Back where applicable)</p>
 
             <div className="documents-grid">
-              {/* AADHAAR CARD - FRONT & BACK */}
               <div className="document-capture-item">
-                {/* <label>Aadhaar Card - Front</label> */}
                 <CameraInput
-                  label="Aadhaar Front"
+                  label="Aadhaar Front *"
                   setFile={(file) => handleDocumentCapture("AadhaarFront", file)}
+                  required
                 />
               </div>
 
               <div className="document-capture-item">
-                {/* <label>Aadhaar Card - Back</label> */}
                 <CameraInput
-                  label="Aadhaar Back"
+                  label="Aadhaar Back *"
                   setFile={(file) => handleDocumentCapture("AadhaarBack", file)}
                 />
               </div>
 
-              {/* PAN CARD */}
               <div className="document-capture-item">
-                {/* <label>PAN Card</label> */}
                 <CameraInput
-                  label="Capture PAN Card"
+                  label="Capture PAN Card *"
                   setFile={(file) => handleDocumentCapture("PANCard", file)}
                 />
               </div>
 
-              {/* PASSPORT - FRONT & BACK */}
               <div className="document-capture-item">
-                {/* <label>Passport</label> */}
                 <CameraInput
-                  label="Capture Passport Front"
+                  label="Capture Passport Front *"
                   setFile={(file) => handleDocumentCapture("PassportFront", file)}
                 />
               </div>
 
               <div className="document-capture-item">
                 <CameraInput
-                  label="Capture Passport Back"
+                  label="Capture Passport Back *"
                   setFile={(file) => handleDocumentCapture("PassportBack", file)}
                 />
               </div>
 
-              {/* DRIVING LICENSE - FRONT & BACK */}
               <div className="document-capture-item">
-                {/* <label>Driving License - Front</label> */}
                 <CameraInput
                   label="Capture License Front"
                   setFile={(file) => handleDocumentCapture("DrivingLicenseFront", file)}
@@ -1245,16 +1454,13 @@ const FormContent = () => {
               </div>
 
               <div className="document-capture-item">
-                {/* <label>Driving License - Back</label> */}
                 <CameraInput
                   label="Capture License Back"
                   setFile={(file) => handleDocumentCapture("DrivingLicenseBack", file)}
                 />
               </div>
 
-              {/* VOTER CARD - FRONT & BACK */}
               <div className="document-capture-item">
-                {/* <label>Voter Card - Front</label> */}
                 <CameraInput
                   label="Capture Voter Card Front"
                   setFile={(file) => handleDocumentCapture("VoterCardFront", file)}
@@ -1262,16 +1468,13 @@ const FormContent = () => {
               </div>
 
               <div className="document-capture-item">
-                {/* <label>Voter Card - Back</label> */}
                 <CameraInput
                   label="Capture Voter Card Back"
                   setFile={(file) => handleDocumentCapture("VoterCardBack", file)}
                 />
               </div>
 
-              {/* MARKSHEET - FRONT & BACK */}
               <div className="document-capture-item">
-                {/* <label>Marksheet - Front</label> */}
                 <CameraInput
                   label="Capture Marksheet Front"
                   setFile={(file) => handleDocumentCapture("MarksheetFront", file)}
@@ -1279,16 +1482,13 @@ const FormContent = () => {
               </div>
 
               <div className="document-capture-item">
-                {/* <label>Marksheet - Back</label> */}
                 <CameraInput
                   label="Capture Marksheet Back"
                   setFile={(file) => handleDocumentCapture("MarksheetBack", file)}
                 />
               </div>
 
-              {/* CV - MULTIPLE PAGES */}
               <div className="document-capture-item">
-                {/* <label>CV - Page 1</label> */}
                 <CameraInput
                   label="Capture CV Page 1"
                   setFile={(file) => handleDocumentCapture("CVPage1", file)}
@@ -1296,28 +1496,11 @@ const FormContent = () => {
               </div>
 
               <div className="document-capture-item">
-                {/* <label>CV - Page 2</label> */}
                 <CameraInput
                   label="Capture CV Page 2"
                   setFile={(file) => handleDocumentCapture("CVPage2", file)}
                 />
               </div>
-
-              {/* <div className="document-capture-item">
-                <label>CV - Page 3 (Optional)</label>
-                <CameraInput
-                  label="Capture CV Page 3"
-                  setFile={(file) => handleDocumentCapture("CVPage3", file)}
-                />
-              </div> */}
-
-              {/* <div className="document-capture-item">
-                <label>CV - Page 4 (Optional)</label>
-                <CameraInput
-                  label="Capture CV Page 4"
-                  setFile={(file) => handleDocumentCapture("CVPage4", file)}
-                />
-              </div> */}
             </div>
           </div>
         );
@@ -1360,7 +1543,7 @@ const FormContent = () => {
 
               {/* BASIC INFORMATION */}
               <div className="review-card">
-                <h4>Basic Information :</h4>
+                <h4>Basic Information</h4>
                 <div className="review-item">
                   <span>Full Name:</span>
                   <strong>{formData.clientName} {formData.surname}</strong>
@@ -1409,6 +1592,49 @@ const FormContent = () => {
                   <span>Address:</span>
                   <strong>{formData.address || 'N/A'}</strong>
                 </div>
+                <button className="edit-btn" onClick={() => goToStep(1)}>Edit</button>
+              </div>
+
+              {/* GOVERNMENT SERVANT INFORMATION */}
+              <div className="review-card">
+                <h4>🏛️ Government Servant Information</h4>
+                <div className="review-item">
+                  <span>Family Member in Govt Service:</span>
+                  <strong>{formData.hasGovtServant || 'N/A'}</strong>
+                </div>
+                
+                {formData.hasGovtServant === "Yes" && (
+                  <>
+                    <div className="review-item">
+                      <span>Relation:</span>
+                      <strong>{formData.govtServantRelation || 'N/A'}</strong>
+                    </div>
+                    <div className="review-item">
+                      <span>Name:</span>
+                      <strong>{formData.govtServantName || 'N/A'}</strong>
+                    </div>
+                    <div className="review-item">
+                      <span>Work Type:</span>
+                      <strong>{formData.govtServantWorkType || 'N/A'}</strong>
+                    </div>
+                    <div className="review-item">
+                      <span>Designation:</span>
+                      <strong>{formData.govtServantDesignation || 'N/A'}</strong>
+                    </div>
+                    <div className="review-item">
+                      <span>Department:</span>
+                      <strong>{formData.govtServantDepartment || 'N/A'}</strong>
+                    </div>
+                  </>
+                )}
+                
+                {formData.hasGovtServant === "No" && (
+                  <div className="review-item">
+                    <span>Status:</span>
+                    <strong>No family member in government service</strong>
+                  </div>
+                )}
+                
                 <button className="edit-btn" onClick={() => goToStep(1)}>Edit</button>
               </div>
 
@@ -1474,7 +1700,7 @@ const FormContent = () => {
                 <button className="edit-btn" onClick={() => goToStep(3)}>Edit</button>
               </div>
 
-              {/* SPOUSE DETAILS - Only show if married */}
+              {/* SPOUSE DETAILS */}
               {formData.maritalStatus === "Married" && (
                 <div className="review-card">
                   <h4>Spouse Details</h4>
